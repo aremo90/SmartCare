@@ -1,5 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
+using SmartCareBLL.Mapping;
+using SmartCareBLL.Services.Classes;
+using SmartCareBLL.Services.Interfaces;
 using SmartCareDAL.Data.Context;
 using SmartCareDAL.Repositories.Classes;
 using SmartCareDAL.Repositories.Interface;
@@ -16,10 +19,14 @@ namespace SmartCareAPI
                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IMedicineReminderRepository, MedicineReminderRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
 
+
+            builder.Services.AddAutoMapper(X => X.AddProfile(new AutoMapperProfile()));
             // Add services to the container.
 
             builder.Services.AddControllers();

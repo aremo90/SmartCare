@@ -10,12 +10,11 @@ namespace SmartCareDAL.Repositories.Interface
 {
     public interface IGenericRepository<TEntity> where TEntity : BaseEntity, new()
     {
-        Task<TEntity?> GetByIdAsync(int id);
         Task<IEnumerable<TEntity>> GetAllAsync();
-        Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
-
+        Task<TEntity?> GetByIdAsync(int id);
+        Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate); // ✅ Add this
         Task AddAsync(TEntity entity);
         void Update(TEntity entity);
-        void Remove(TEntity entity);
+        void Delete(TEntity entity);
     }
 }

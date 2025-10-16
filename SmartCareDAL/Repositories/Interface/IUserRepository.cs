@@ -11,5 +11,7 @@ namespace SmartCareDAL.Repositories.Interface
     {
         Task<User?> GetUserWithAddressesAsync(int id);
         Task<User?> GetUserWithRemindersAsync(int id);
+        Task<User?> GetByEmailAsync(string email);
+
     }
 }
