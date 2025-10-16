@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareBLL.ViewModels;
 
@@ -45,17 +46,6 @@ namespace SmartCareAPI.Controllers
             return Ok(user);
         }
 
-        // ✅ POST: api/user
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] UserCreateViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var createdUser = await _userService.CreateAsync(model);
-            return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
-        }
-
         // ✅ PUT: api/user/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UserUpdateViewModel model)
@@ -63,12 +53,23 @@ namespace SmartCareAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _userService.UpdateAsync(id, model);
-            if (!result)
-                return NotFound("User not found.");
+            try
+            {
+                var updated = await _userService.UpdateAsync(id, model);
+                if (!updated)
+                    return NotFound("User not found.");
 
-            return NoContent();
+                return NoContent(); // 204
+            }
+            catch (ApplicationException ex)
+            {
+                return Conflict(new { message = ex.Message }); // duplicate email
+            }
         }
+
+
+
+
 
         // ✅ DELETE: api/user/5
         [HttpDelete("{id}")]

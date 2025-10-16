@@ -46,22 +46,34 @@ namespace SmartCareBLL.Services.Classes
             return user == null ? null : _mapper.Map<UserViewModel>(user);
         }
 
-        public async Task<UserViewModel> CreateAsync(UserCreateViewModel model)
-        {
-            var entity = _mapper.Map<User>(model);
-            await _unitOfWork.Users.AddAsync(entity);
-            await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<UserViewModel>(entity);
-        }
-
         public async Task<bool> UpdateAsync(int id, UserUpdateViewModel model)
         {
-            var existingUser = await _unitOfWork.Users.GetByIdAsync(id);
-            if (existingUser == null) return false;
+            // 1. Get the existing user
+            var user = await _unitOfWork.Users.GetByIdAsync(id);
+            if (user == null)
+                return false; // User not found
 
-            _mapper.Map(model, existingUser);
-            _unitOfWork.Users.Update(existingUser);
+            // 2. Check for duplicate email if email is being updated
+            if (!string.IsNullOrEmpty(model.Email) && model.Email != user.Email)
+            {
+                var existing = (await _unitOfWork.Users.FindAsync(u => u.Email == model.Email)).FirstOrDefault();
+                if (existing != null)
+                    throw new ApplicationException($"Email '{model.Email}' is already taken.");
+
+                user.Email = model.Email; // update email
+            }
+
+            // 3. Update first and last name if provided
+            if (!string.IsNullOrEmpty(model.FirstName))
+                user.FirstName = model.FirstName;
+
+            if (!string.IsNullOrEmpty(model.LastName))
+                user.LastName = model.LastName;
+
+            // 4. Update timestamp
+            user.UpdatedAt = DateTime.UtcNow;
+
+            // 5. Save changes
             await _unitOfWork.SaveChangesAsync();
 
             return true;
@@ -77,5 +89,6 @@ namespace SmartCareBLL.Services.Classes
 
             return true;
         }
+      
     }
 }

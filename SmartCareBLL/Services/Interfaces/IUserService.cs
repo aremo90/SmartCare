@@ -11,8 +11,7 @@ namespace SmartCareBLL.Services.Interfaces
     {
         Task<IEnumerable<UserViewModel>> GetAllAsync();
         Task<UserViewModel?> GetByIdAsync(int id);
-        Task<UserViewModel?> GetByEmailAsync(string email); // ✅ NEW
-        Task<UserViewModel> CreateAsync(UserCreateViewModel model);
+        Task<UserViewModel?> GetByEmailAsync(string email); 
         Task<bool> UpdateAsync(int id, UserUpdateViewModel model);
         Task<bool> DeleteAsync(int id);
     }

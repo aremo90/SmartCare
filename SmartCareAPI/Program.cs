@@ -1,11 +1,13 @@
-
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SmartCareBLL.Mapping;
 using SmartCareBLL.Services.Classes;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareDAL.Data.Context;
 using SmartCareDAL.Repositories.Classes;
 using SmartCareDAL.Repositories.Interface;
+using System.Text;
 
 namespace SmartCareAPI
 {
@@ -15,27 +17,70 @@ namespace SmartCareAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // ---------------------------
+            // 1️⃣ Database Context
+            // ---------------------------
             builder.Services.AddDbContext<SmartCareDbContext>(options =>
-               options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
+            // ---------------------------
+            // 2️⃣ Repositories & UnitOfWork
+            // ---------------------------
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IMedicineReminderRepository, MedicineReminderRepository>();
+
+            // ---------------------------
+            // 3️⃣ Services
+            // ---------------------------
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<AuthService>(); // <<<<< JWT / Auth service
 
+            // ---------------------------
+            // 4️⃣ AutoMapper
+            // ---------------------------
+            builder.Services.AddAutoMapper(cfg => cfg.AddProfile(new AutoMapperProfile()));
 
-            builder.Services.AddAutoMapper(X => X.AddProfile(new AutoMapperProfile()));
-            // Add services to the container.
-
+            // ---------------------------
+            // 5️⃣ JWT Authentication
+            // ---------------------------
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+            builder.Services.AddAuthorization();
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
+
+            // ---------------------------
+            // 6️⃣ Controllers & OpenAPI
+            // ---------------------------
             builder.Services.AddOpenApi();
 
+            // ---------------------------
+            // 7️⃣ Build app
+            // ---------------------------
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
@@ -43,9 +88,16 @@ namespace SmartCareAPI
 
             app.UseHttpsRedirection();
 
+            // ---------------------------
+            // 8️⃣ Authentication & Authorization
+            // ---------------------------
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
+            // ---------------------------
+            // 9️⃣ Map Controllers
+            // ---------------------------
             app.MapControllers();
 
             app.Run();
