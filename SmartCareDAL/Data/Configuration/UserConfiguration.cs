@@ -27,13 +27,19 @@ namespace SmartCareDAL.Data.Configuration
                 .IsRequired()
                 .HasMaxLength(150);
 
-            builder.HasIndex(u => u.Email).IsUnique();
+            builder.HasIndex(u => u.Email)
+                .IsUnique();
 
             builder.Property(u => u.Gender)
                 .IsRequired();
 
             builder.Property(u => u.DateOfBirth)
                 .IsRequired();
+
+            builder.Property(u => u.PhoneNumber)
+                .IsRequired()
+                .HasMaxLength(11)
+                .HasAnnotation("RegularExpression", @"^01[0-9]{9}$");
 
             builder.HasMany(u => u.Addresses)
                 .WithOne(a => a.User)

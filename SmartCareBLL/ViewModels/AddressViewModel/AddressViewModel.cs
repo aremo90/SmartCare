@@ -4,19 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SmartCareDAL.Models
+namespace SmartCareBLL.ViewModels.AddressViewModel
 {
-    public class Address : BaseEntity
+    public class AddressViewModel
     {
-        public int UserId { get; set; }
+        public int Id { get; set; }
 
+        public int UserId { get; set; }
         public int BuildingNumber { get; set; }
         public string Street { get; set; } = null!;
         public string City { get; set; } = null!;
         public int ZipCode { get; set; }
-
-        // Navigation property
-        public User? User { get; set; }
 
     }
 }

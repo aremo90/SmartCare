@@ -39,7 +39,7 @@ namespace SmartCareBLL.Services.Classes
         }
 
         // Signup
-        public async Task<User> RegisterAsync(string firstName, string lastName, string email, string password, string gender, DateTime dateOfBirth)
+        public async Task<User> RegisterAsync(string firstName, string lastName, string email, string password, string gender, DateTime dateOfBirth , string phoneNumber)
         {
             var exists = (await _unitOfWork.Users.FindAsync(u => u.Email == email)).Any();
             if (exists) throw new ApplicationException($"Email '{email}' is already taken.");
@@ -51,7 +51,8 @@ namespace SmartCareBLL.Services.Classes
                 Email = email,
                 PasswordHash = HashPassword(password),
                 Gender = Enum.Parse<Gender>(gender),
-                DateOfBirth = dateOfBirth
+                DateOfBirth = dateOfBirth,
+                PhoneNumber = phoneNumber
             };
 
             await _unitOfWork.Users.AddAsync(user);

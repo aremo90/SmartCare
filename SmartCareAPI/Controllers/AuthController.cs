@@ -19,10 +19,11 @@ public class AuthController : ControllerBase
     [HttpPost("signup")]
     public async Task<IActionResult> Signup([FromBody] UserCreateViewModel model)
     {
+        //Ok(new { message = "Address added successfully" });
         try
         {
             var user = await _authService.RegisterAsync(
-                model.FirstName, model.LastName, model.Email, model.Password, model.Gender, model.DateOfBirth);
+                model.FirstName, model.LastName, model.Email, model.Password, model.Gender, model.DateOfBirth , model.PhoneNumber);
 
             return Ok(new
             {
@@ -31,7 +32,9 @@ public class AuthController : ControllerBase
                 user.LastName,
                 user.Email,
                 user.Gender,
-                user.DateOfBirth
+                user.DateOfBirth,
+                user.PhoneNumber,
+                message = "Account Created successfully"
             });
         }
         catch (ApplicationException ex)
@@ -47,7 +50,10 @@ public class AuthController : ControllerBase
         try
         {
             var token = await _authService.LoginAsync(model.Email, model.Password);
-            return Ok(new { token });
+            return Ok(new { 
+                token ,
+                message = "Logged in successfully"
+            });
         }
         catch (ApplicationException ex)
         {
