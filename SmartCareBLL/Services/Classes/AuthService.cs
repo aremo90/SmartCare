@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 
@@ -29,32 +30,40 @@ namespace SmartCareBLL.Services.Classes
         }
 
         // Login
-        public async Task<string> LoginAsync(string email, string password)
+        public async Task<(string Token , int UserID)> LoginAsync(string email, string password)
         {
             var user = (await _unitOfWork.Users.FindAsync(u => u.Email == email)).FirstOrDefault();
+
             if (user == null || !VerifyPassword(password, user.PasswordHash))
                 throw new ApplicationException("Invalid email or password");
 
-            return GenerateToken(user);
+
+            var token = GenerateToken(user);
+            return (token , user.Id);
         }
 
         // Signup
-        public async Task<User> RegisterAsync(string firstName, string lastName, string email, string password, string gender, DateTime dateOfBirth , string phoneNumber)
+        public async Task<User> RegisterAsync(string firstName, string lastName, string email, string password, string gender, DateTime dateOfBirth, string phoneNumber)
         {
+            // 1️⃣ Check if email already exists
             var exists = (await _unitOfWork.Users.FindAsync(u => u.Email == email)).Any();
-            if (exists) throw new ApplicationException($"Email '{email}' is already taken.");
+            if (exists)
+                throw new ApplicationException($"Email '{email}' is already taken.");
 
+            // 3️⃣ Create new user entity
             var user = new User
             {
                 FirstName = firstName,
                 LastName = lastName,
                 Email = email,
                 PasswordHash = HashPassword(password),
-                Gender = Enum.Parse<Gender>(gender),
+                Gender = Enum.Parse<Gender>(gender, ignoreCase: true),
                 DateOfBirth = dateOfBirth,
-                PhoneNumber = phoneNumber
+                PhoneNumber = phoneNumber.Trim(),
+                CreatedAt = DateTime.UtcNow
             };
 
+            // 4️⃣ Save changes to database
             await _unitOfWork.Users.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
 

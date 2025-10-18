@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareBLL.ViewModels;
+using SmartCareBLL.ViewModels.Common;
 
 namespace SmartCareAPI.Controllers
 {
@@ -10,76 +11,66 @@ namespace SmartCareAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        public UserController(IUserService userService) => _userService = userService;
 
-        public UserController(IUserService userService)
-        {
-            _userService = userService;
-        }
-
-        // ✅ GET: api/user
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllAsync();
-            return Ok(users);
+            return Ok(ApiResponse<IEnumerable<UserViewModel>>.SuccessResponse(users, "Users retrieved successfully"));
         }
 
-        // ✅ GET: api/user/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
-                return NotFound("User not found.");
-
-            return Ok(user);
+                return NotFound(ApiResponse<string>.FailResponse("User not found"));
+            return Ok(ApiResponse<UserViewModel>.SuccessResponse(user, "User retrieved successfully"));
         }
 
-        // ✅ GET: api/user/byEmail?email=test@gmail.com
         [HttpGet("byEmail")]
         public async Task<IActionResult> GetByEmail([FromQuery] string email)
         {
             var user = await _userService.GetByEmailAsync(email);
             if (user == null)
-                return NotFound("User not found.");
-
-            return Ok(user);
+                return NotFound(ApiResponse<string>.FailResponse("User not found"));
+            return Ok(ApiResponse<UserViewModel>.SuccessResponse(user, "User retrieved successfully"));
         }
 
-        // ✅ PUT: api/user/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UserUpdateViewModel model)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(ApiResponse<string>.FailResponse("Invalid data"));
 
             try
             {
-                var updated = await _userService.UpdateAsync(id, model);
-                if (!updated)
-                    return NotFound("User not found.");
+                var updatedUser = await _userService.UpdateAsync(id, model);
+                if (updatedUser == null)
+                    return NotFound(ApiResponse<string>.FailResponse("User not found"));
 
-                return NoContent(); // 204
+                return Ok(ApiResponse<UserViewModel>.SuccessResponse(updatedUser, "User updated successfully"));
             }
             catch (ApplicationException ex)
             {
-                return Conflict(new { message = ex.Message }); // duplicate email
+                return Conflict(ApiResponse<string>.FailResponse(ex.Message));
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, ApiResponse<string>.FailResponse("An unexpected error occurred"));
             }
         }
 
 
-
-
-
-        // ✅ DELETE: api/user/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _userService.DeleteAsync(id);
             if (!result)
-                return NotFound("User not found.");
+                return NotFound(ApiResponse<string>.FailResponse("User not found"));
 
-            return NoContent();
+            return Ok(ApiResponse<string>.SuccessResponse("User deleted successfully"));
         }
     }
 }

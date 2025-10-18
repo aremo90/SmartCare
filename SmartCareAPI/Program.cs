@@ -30,6 +30,7 @@ namespace SmartCareAPI
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IMedicineReminderRepository, MedicineReminderRepository>();
+            builder.Services.AddScoped<IAddressService, AddressService>();
 
             // ---------------------------
             // 3️⃣ Services

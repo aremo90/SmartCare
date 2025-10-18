@@ -1,8 +1,5 @@
 ﻿using SmartCareBLL.ViewModels;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SmartCareBLL.Services.Interfaces
@@ -11,8 +8,8 @@ namespace SmartCareBLL.Services.Interfaces
     {
         Task<IEnumerable<UserViewModel>> GetAllAsync();
         Task<UserViewModel?> GetByIdAsync(int id);
-        Task<UserViewModel?> GetByEmailAsync(string email); 
-        Task<bool> UpdateAsync(int id, UserUpdateViewModel model);
+        Task<UserViewModel?> GetByEmailAsync(string email);
+        Task<UserViewModel?> UpdateAsync(int id, UserUpdateViewModel model);
         Task<bool> DeleteAsync(int id);
     }
 }

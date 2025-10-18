@@ -22,7 +22,9 @@ namespace SmartCareBLL.ViewModels
         public string Gender { get; set; } = null!;
         [Required(ErrorMessage = "DateOfBirth is Required")]
         public DateTime DateOfBirth { get; set; }
+
         [Required(ErrorMessage = "PhoneNumber is Required")]
+        [Phone(ErrorMessage = "Invalid Phone Number")]
         public string PhoneNumber { get; set; } = null!;
     }
 }

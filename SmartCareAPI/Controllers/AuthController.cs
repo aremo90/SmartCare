@@ -1,63 +1,66 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SmartCareBLL.Services.Classes;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareBLL.ViewModels;
+using SmartCareBLL.ViewModels.Common;
 using SmartCareBLL.ViewModels.LoginViewModel;
+using SmartCareDAL.Models;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+namespace SmartCareAPI.Controllers
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
     {
-        _authService = authService;
-    }
+        private readonly IAuthService _authService;
+        public AuthController(IAuthService authService) => _authService = authService;
 
-    // POST api/auth/signup
-    [HttpPost("signup")]
-    public async Task<IActionResult> Signup([FromBody] UserCreateViewModel model)
-    {
-        //Ok(new { message = "Address added successfully" });
-        try
+        [HttpPost("signup")]
+        public async Task<IActionResult> Signup([FromBody] UserCreateViewModel model)
         {
-            var user = await _authService.RegisterAsync(
-                model.FirstName, model.LastName, model.Email, model.Password, model.Gender, model.DateOfBirth , model.PhoneNumber);
-
-            return Ok(new
+            try
             {
-                user.Id,
-                user.FirstName,
-                user.LastName,
-                user.Email,
-                user.Gender,
-                user.DateOfBirth,
-                user.PhoneNumber,
-                message = "Account Created successfully"
-            });
-        }
-        catch (ApplicationException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
-    }
+                var user = await _authService.RegisterAsync(
+                    model.FirstName, model.LastName, model.Email,
+                    model.Password, model.Gender, model.DateOfBirth, model.PhoneNumber);
 
-    // POST api/auth/login
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginViewModel model)
-    {
-        try
-        {
-            var token = await _authService.LoginAsync(model.Email, model.Password);
-            return Ok(new { 
-                token ,
-                message = "Logged in successfully"
-            });
+                var responseData = new
+                {
+                    user.Id,
+                    user.FirstName,
+                    user.LastName,
+                    user.Email,
+                    user.Gender,
+                    user.DateOfBirth,
+                    user.PhoneNumber
+                };
+
+                return Ok(ApiResponse<object>.SuccessResponse(responseData, "Account created successfully"));
+            }
+            catch (ApplicationException ex)
+            {
+                return Conflict(ApiResponse<string>.FailResponse(ex.Message));
+            }
         }
-        catch (ApplicationException ex)
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginViewModel model)
         {
-            return Unauthorized(new { message = ex.Message });
+            try
+            {
+                var result = await _authService.LoginAsync(model.Email, model.Password);
+
+                var data = new
+                {
+                    UserID = result.UserID,
+                    Token = result.Token
+                };
+
+                return Ok(ApiResponse<object>.SuccessResponse(data, "Logged in successfully"));
+            }
+            catch (ApplicationException ex)
+            {
+                return Unauthorized(ApiResponse<string>.FailResponse(ex.Message));
+            }
         }
     }
 }

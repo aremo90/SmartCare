@@ -30,7 +30,8 @@ namespace SmartCareBLL.Services.Classes
                 UserId = address.UserId,
                 BuildingNumber = address.BuildingNumber,
                 Street = address.Street,
-                City = address.City
+                City = address.City,
+                ZipCode = address.ZipCode
             };
         }
 
@@ -43,23 +44,11 @@ namespace SmartCareBLL.Services.Classes
                 UserId = a.UserId,
                 BuildingNumber = a.BuildingNumber,
                 Street = a.Street,
-                City = a.City
+                City = a.City,
+                ZipCode = a.ZipCode
             });
         }
 
-        public async Task AddAddressAsync(int userId, int buildingNumber, string street, string city)
-        {
-            var address = new Address
-            {
-                UserId = userId,
-                BuildingNumber = buildingNumber,
-                Street = street,
-                City = city
-            };
-
-            await _unitOfWork.GetRepository<Address>().AddAsync(address);
-            await _unitOfWork.SaveChangesAsync();
-        }
 
         public async Task DeleteAddressAsync(int addressId)
         {
@@ -68,6 +57,34 @@ namespace SmartCareBLL.Services.Classes
 
             _unitOfWork.GetRepository<Address>().Delete(address);
             await _unitOfWork.SaveChangesAsync();
+        }
+        public async Task<AddressViewModel?> AddAddressAsync(int userId, int buildingNumber, string street, string city, int zipCode)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user == null)
+                return null; // user doesn't exist
+
+            var address = new Address
+            {
+                UserId = userId,
+                BuildingNumber = buildingNumber,
+                Street = street,
+                City = city,
+                ZipCode = zipCode
+            };
+
+            await _unitOfWork.GetRepository<Address>().AddAsync(address);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new AddressViewModel
+            {
+                Id = address.Id,
+                UserId = address.UserId,
+                BuildingNumber = address.BuildingNumber,
+                Street = address.Street,
+                City = address.City,
+                ZipCode = address.ZipCode
+            };
         }
     }
 }
