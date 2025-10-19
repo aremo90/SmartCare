@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using SmartCareBLL.Mapping;
 using SmartCareBLL.Services.Classes;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareDAL.Data.Context;
+using SmartCareDAL.Data.Helper;
 using SmartCareDAL.Repositories.Classes;
 using SmartCareDAL.Repositories.Interface;
 using System.Text;
@@ -31,6 +33,13 @@ namespace SmartCareAPI
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IMedicineReminderRepository, MedicineReminderRepository>();
             builder.Services.AddScoped<IAddressService, AddressService>();
+            builder.Services.AddScoped<IMedicineReminderService, MedicineReminderService>();
+            builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+            });
+
 
             // ---------------------------
             // 3️⃣ Services

@@ -55,6 +55,11 @@ namespace SmartCareDAL.Data.Configuration
                 .WithOne(g => g.User)
                 .HasForeignKey(g => g.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(u => u.Devices)
+                .WithOne(d => d.User)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
