@@ -1,4 +1,5 @@
-﻿using SmartCareDAL.Data.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using SmartCareDAL.Data.Context;
 using SmartCareDAL.Models;
 using SmartCareDAL.Repositories.Interface;
 using System;
@@ -9,21 +10,30 @@ using System.Threading.Tasks;
 
 namespace SmartCareDAL.Repositories.Classes
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly SmartCareDbContext _dbContext;
-        private readonly Dictionary<Type, object> _repositories = new();
+        private readonly Dictionary<Type, object> _repositories; // ✅ initialized in constructor
 
         public IUserRepository Users { get; }
         public IMedicineReminderRepository MedicineReminders { get; }
+        public IDeviceCommandRepository DeviceCommands { get; }
+        public IDeviceRepository Devices { get; }
 
-        public UnitOfWork(SmartCareDbContext dbContext,
-                          IUserRepository userRepository,
-                          IMedicineReminderRepository medicineReminderRepository)
+        public UnitOfWork(
+            SmartCareDbContext dbContext,
+            IUserRepository userRepository,
+            IMedicineReminderRepository medicineReminderRepository,
+            IDeviceCommandRepository deviceCommandRepo,
+            IDeviceRepository deviceRepository)
         {
             _dbContext = dbContext;
             Users = userRepository;
             MedicineReminders = medicineReminderRepository;
+            DeviceCommands = deviceCommandRepo;
+            Devices = deviceRepository;
+
+            _repositories = new Dictionary<Type, object>(); // ✅ Initialize dictionary
         }
 
         public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new()

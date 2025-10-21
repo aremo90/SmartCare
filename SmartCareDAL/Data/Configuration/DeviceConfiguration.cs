@@ -13,22 +13,28 @@ namespace SmartCareDAL.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<Device> builder)
         {
-            builder.ToTable("Devices");
-            builder.HasKey(x => x.Id); 
+            builder.HasKey(d => d.Id);
 
-            builder.Property(x => x.DeviceIdentifier).HasMaxLength(100).IsRequired(); 
+            builder.Property(d => d.DeviceIdentifier)
+                   .IsRequired()
+                   .HasMaxLength(100);
 
-            builder.Property(x => x.Model).HasMaxLength(100); 
+            builder.Property(d => d.Model)
+                   .HasMaxLength(100);
 
-            builder.Property(x => x.LastSeenDate).HasColumnType("date"); 
+            builder.Property(d => d.IsActive)
+                   .IsRequired();
 
-            builder.Property(x => x.LastSeenTime); 
+            builder.Property(d => d.IsPaired)
+                   .HasDefaultValue(false);
 
-            builder.Property(x => x.IsActive).IsRequired(); 
+            builder.Property(d => d.SignalStrength)
+                   .HasColumnType("float");
 
-            builder.Property(x => x.IsPaired).IsRequired();
-
-            builder.HasOne(x => x.User).WithMany(u => u.Devices).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(d => d.User)
+                .WithOne(u => u.Device)
+                .HasForeignKey<Device>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -34,6 +34,12 @@ namespace SmartCareAPI
             builder.Services.AddScoped<IMedicineReminderRepository, MedicineReminderRepository>();
             builder.Services.AddScoped<IAddressService, AddressService>();
             builder.Services.AddScoped<IMedicineReminderService, MedicineReminderService>();
+            builder.Services.AddScoped<IDeviceCommandRepository, DeviceCommandRepository>();
+            builder.Services.AddScoped<IDeviceCommandService, DeviceCommandService>();
+            builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
+            builder.Services.AddScoped<IDeviceService, DeviceService>();
+
+
             builder.Services.AddControllers()
             .AddJsonOptions(options =>
             {

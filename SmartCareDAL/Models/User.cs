@@ -20,7 +20,7 @@ namespace SmartCareDAL.Models
         public ICollection<Address>? Addresses { get; set; }
         public ICollection<MedicineReminder>? MedicineReminders { get; set; }
         public ICollection<GpsLocation>? GpsLocations { get; set; }
-        public ICollection<Device>? Devices { get; set; } // Added navigation to Device table
+        public Device? Device { get; set; }
     }
 
 }

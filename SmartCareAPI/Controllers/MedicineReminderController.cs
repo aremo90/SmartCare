@@ -17,6 +17,7 @@ namespace SmartCareAPI.Controllers
         {
             _reminderService = reminderService;
         }
+        #region Get All Medicine
 
         // ✅ GET: api/medicinereminder
         [HttpGet]
@@ -25,6 +26,9 @@ namespace SmartCareAPI.Controllers
             var reminders = await _reminderService.GetAllAsync();
             return Ok(ApiResponse<object>.SuccessResponse(reminders, "Reminders retrieved successfully"));
         }
+        #endregion
+
+        #region Get Medicine info for a user
 
         // ✅ GET: api/medicinereminder/user/5
         [HttpGet("user/{userId}")]
@@ -33,6 +37,10 @@ namespace SmartCareAPI.Controllers
             var reminders = await _reminderService.GetByUserIdAsync(userId);
             return Ok(ApiResponse<object>.SuccessResponse(reminders, $"Reminders for user {userId} retrieved successfully"));
         }
+        #endregion
+
+        #region Get Medicine info by Id
+
 
         // ✅ GET: api/medicinereminder/5
         [HttpGet("{id}")]
@@ -44,6 +52,9 @@ namespace SmartCareAPI.Controllers
 
             return Ok(ApiResponse<object>.SuccessResponse(reminder, "Reminder retrieved successfully"));
         }
+        #endregion
+
+        #region Add New Medicine
 
         // ✅ POST: api/medicinereminder
         [HttpPost]
@@ -62,6 +73,9 @@ namespace SmartCareAPI.Controllers
                 return Conflict(ApiResponse<string>.FailResponse(ex.Message));
             }
         }
+        #endregion
+
+        #region Update Medicine
 
         // ✅ PUT: api/medicinereminder/5
         [HttpPut("{id}")]
@@ -83,6 +97,9 @@ namespace SmartCareAPI.Controllers
                 return Conflict(ApiResponse<string>.FailResponse(ex.Message));
             }
         }
+        #endregion
+
+        #region Delete Medicine
 
         // ✅ DELETE: api/medicinereminder/5
         [HttpDelete("{id}")]
@@ -94,6 +111,7 @@ namespace SmartCareAPI.Controllers
 
             return Ok(ApiResponse<string>.SuccessResponse("Reminder deleted successfully"));
         }
+        #endregion
     }
 
 

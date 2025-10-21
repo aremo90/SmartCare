@@ -14,6 +14,8 @@ namespace SmartCareDAL.Repositories.Interface
         // Custom Repositories (only ones with domain logic)
         IUserRepository Users { get; }
         IMedicineReminderRepository MedicineReminders { get; }
+        IDeviceCommandRepository DeviceCommands { get; }
+        public IDeviceRepository Devices { get; }
 
         int SaveChanges();
         Task<int> SaveChangesAsync();
