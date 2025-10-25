@@ -25,12 +25,25 @@ namespace SmartCareAPI.Controllers
             return Ok(ApiResponse<DeviceCommandViewModel>.SuccessResponse(result, "Beep command created."));
         }
 
-        [HttpGet("pending/{userId}")]
+        [HttpGet("pending/all/{userId}")]
         public async Task<IActionResult> GetPendingCommands(int userId)
         {
             var result = await _deviceCommandService.GetPendingCommandsAsync(userId);
             return Ok(ApiResponse<IEnumerable<DeviceCommandViewModel>>.SuccessResponse(result, "Pending commands retrieved."));
         }
+        [HttpGet("pending/{userId}")]
+        public async Task<IActionResult> GetPendingCommand(int userId)
+        {
+            var command = await _deviceCommandService.GetTopPendingCommandAsync(userId);
+
+            if (command == null)
+            {
+                return Ok(ApiResponse<DeviceCommandViewModel>.FailResponse("No pending commands found"));
+            }
+
+            return Ok(ApiResponse<DeviceCommandViewModel>.SuccessResponse(command, "Top pending command retrieved."));
+        }
+
 
         [HttpPost("execute/{commandId}")]
         public async Task<IActionResult> MarkCommandAsExecuted(int commandId)

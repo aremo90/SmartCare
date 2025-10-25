@@ -51,6 +51,27 @@ namespace SmartCareBLL.Services.Classes
             });
         }
 
+        public async Task<DeviceCommandViewModel?> GetTopPendingCommandAsync(int userId)
+        {
+            var command = (await _unitOfWork.DeviceCommands.FindAsync(
+                c => c.UserId == userId && !c.IsExecuted))
+                .OrderBy(c => c.Id) // or by CreatedAt if you have it
+                .FirstOrDefault();
+
+            if (command == null)
+                return null;
+
+            return new DeviceCommandViewModel
+            {
+                Id = command.Id,
+                UserId = command.UserId,
+                CommandType = command.CommandType,
+                CommandData = command.CommandData,
+                IsExecuted = command.IsExecuted
+            };
+        }
+
+
         public async Task<bool> MarkCommandAsExecutedAsync(int commandId)
         {
             var command = await _unitOfWork.DeviceCommands.GetByIdAsync(commandId);

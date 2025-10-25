@@ -11,6 +11,7 @@ namespace SmartCareBLL.Services.Interfaces
     {
         Task<DeviceCommandViewModel> SendBeepCommandAsync(int userId);
         Task<IEnumerable<DeviceCommandViewModel>> GetPendingCommandsAsync(int userId);
+        Task<DeviceCommandViewModel?> GetTopPendingCommandAsync(int userId);
         Task<bool> MarkCommandAsExecutedAsync(int commandId);
     }
 }
