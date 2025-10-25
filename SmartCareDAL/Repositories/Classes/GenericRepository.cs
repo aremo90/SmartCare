@@ -51,6 +51,11 @@ namespace SmartCareDAL.Repositories.Classes
         {
             _dbSet.Remove(entity);
         }
+        public async Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
+        }
+
 
     }
 }

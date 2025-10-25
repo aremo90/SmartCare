@@ -21,8 +21,10 @@ namespace SmartCareDAL.Data.Context
         }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<Address> Addresses { get; set; }
+        public DbSet<Device> Devices { get; set; }
         public DbSet<MedicineReminder> MedicineReminders { get; set; }
+        public DbSet<DeviceCommand> DeviceCommands { get; set; }
+        public DbSet<Address> Addresses { get; set; }
         public DbSet<GpsLocation> GpsLocations { get; set; }
 
 

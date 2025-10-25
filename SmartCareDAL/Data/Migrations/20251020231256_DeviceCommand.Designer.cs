@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartCareDAL.Data.Context;
 
@@ -11,9 +12,11 @@ using SmartCareDAL.Data.Context;
 namespace SmartCareDAL.Data.Migrations
 {
     [DbContext(typeof(SmartCareDbContext))]
-    partial class SmartCareDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251020231256_DeviceCommand")]
+    partial class DeviceCommand
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,6 +74,9 @@ namespace SmartCareDAL.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double?>("BatteryLevel")
+                        .HasColumnType("float");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -83,9 +89,13 @@ namespace SmartCareDAL.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPaired")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastSeenDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeSpan?>("LastSeenTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("Model")
                         .HasMaxLength(100)
@@ -102,49 +112,9 @@ namespace SmartCareDAL.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Devices");
-                });
-
-            modelBuilder.Entity("SmartCareDAL.Models.DeviceCommand", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CommandData")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("CommandType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ExecutedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsExecuted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
                     b.HasIndex("UserId");
 
-                    b.ToTable("DeviceCommands");
+                    b.ToTable("Devices", (string)null);
                 });
 
             modelBuilder.Entity("SmartCareDAL.Models.GpsLocation", b =>
@@ -299,18 +269,7 @@ namespace SmartCareDAL.Data.Migrations
             modelBuilder.Entity("SmartCareDAL.Models.Device", b =>
                 {
                     b.HasOne("SmartCareDAL.Models.User", "User")
-                        .WithOne("Device")
-                        .HasForeignKey("SmartCareDAL.Models.Device", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SmartCareDAL.Models.DeviceCommand", b =>
-                {
-                    b.HasOne("SmartCareDAL.Models.User", "User")
-                        .WithMany()
+                        .WithMany("Devices")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -344,7 +303,7 @@ namespace SmartCareDAL.Data.Migrations
                 {
                     b.Navigation("Addresses");
 
-                    b.Navigation("Device");
+                    b.Navigation("Devices");
 
                     b.Navigation("GpsLocations");
 

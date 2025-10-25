@@ -1,9 +1,7 @@
 ﻿using SmartCareDAL.Models.Enum;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmartCareDAL.Models
 {
@@ -22,6 +20,7 @@ namespace SmartCareDAL.Models
         public ICollection<Address>? Addresses { get; set; }
         public ICollection<MedicineReminder>? MedicineReminders { get; set; }
         public ICollection<GpsLocation>? GpsLocations { get; set; }
-
+        public Device? Device { get; set; }
     }
+
 }

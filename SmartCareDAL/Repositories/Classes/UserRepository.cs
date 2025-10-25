@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace SmartCareDAL.Repositories.Classes
 {
     public class UserRepository : GenericRepository<User>, IUserRepository 
