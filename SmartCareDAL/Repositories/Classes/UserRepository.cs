@@ -8,36 +8,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace SmartCareDAL.Repositories.Classes
 {
-    public class UserRepository : GenericRepository<User>, IUserRepository 
+    public class UserRepository : IUserRepository
     {
-        private readonly SmartCareDbContext _context;
+        private readonly SmartCareDbContext _dbContext;
 
-        public UserRepository(SmartCareDbContext context) : base(context) 
+        public UserRepository(SmartCareDbContext dbContext)
         {
-            _context = context;
-            
+            _dbContext = dbContext;
         }
 
         public async Task<User?> GetByEmailAsync(string email)
-        {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        }
+            => await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-        public async Task<User?> GetUserWithAddressesAsync(int id)
-        {
-            return await _context.Users
-                .Include(u => u.Addresses)
-                .FirstOrDefaultAsync(u => u.Id == id);
-        }
-
-        public async Task<User?> GetUserWithRemindersAsync(int id)
-        {
-            return await _context.Users
-                .Include(u => u.MedicineReminders)
-                .FirstOrDefaultAsync(u => u.Id == id);
-        }
     }
 }

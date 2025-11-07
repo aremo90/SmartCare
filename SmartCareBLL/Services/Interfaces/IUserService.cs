@@ -1,4 +1,4 @@
-﻿using SmartCareBLL.ViewModels;
+﻿using SmartCareBLL.DTOS.UserDTOS;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,10 +6,9 @@ namespace SmartCareBLL.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<IEnumerable<UserViewModel>> GetAllAsync();
-        Task<UserViewModel?> GetByIdAsync(int id);
-        Task<UserViewModel?> GetByEmailAsync(string email);
-        Task<UserViewModel?> UpdateAsync(int id, UserUpdateViewModel model);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<UserDTO>> GetAllUsersAsync();
+        Task<UserDTO> GetUserByIdAsync(int userId);
+        Task<UserDTO> DeleteUserByIdAsync(int id);
+        Task<UserDTO> UpdateUserByIdAsync(int id, UserToUpdateDTO userDto);
     }
 }

@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 
 namespace SmartCareDAL.Repositories.Interface
 {
-    public interface IUserRepository : IGenericRepository<User>
+    public interface IUserRepository
     {
-        Task<User?> GetUserWithAddressesAsync(int id);
-        Task<User?> GetUserWithRemindersAsync(int id);
         Task<User?> GetByEmailAsync(string email);
 
     }

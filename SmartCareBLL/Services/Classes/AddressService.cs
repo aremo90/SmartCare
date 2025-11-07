@@ -1,5 +1,7 @@
-﻿using SmartCareBLL.Services.Interfaces;
-using SmartCareBLL.ViewModels.AddressViewModel;
+﻿using AutoMapper;
+using SmartCareBLL.DTOS.AddressDTOS;
+using SmartCareBLL.DTOS.UserDTOS;
+using SmartCareBLL.Services.Interfaces;
 using SmartCareDAL.Models;
 using SmartCareDAL.Repositories.Interface;
 using System;
@@ -13,78 +15,65 @@ namespace SmartCareBLL.Services.Classes
     public class AddressService : IAddressService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public AddressService(IUnitOfWork unitOfWork)
+        public AddressService(IUnitOfWork unitOfWork , IMapper mapper)
         {
             _unitOfWork = unitOfWork;
-        }
-
-        public async Task<AddressViewModel> GetAddressByIdAsync(int addressId)
-        {
-            var address = await _unitOfWork.GetRepository<Address>().GetByIdAsync(addressId);
-            if (address == null) return null;
-
-            return new AddressViewModel
-            {
-                Id = address.Id,
-                UserId = address.UserId,
-                BuildingNumber = address.BuildingNumber,
-                Street = address.Street,
-                City = address.City,
-                ZipCode = address.ZipCode
-            };
-        }
-
-        public async Task<IEnumerable<AddressViewModel>> GetAddressesByUserIdAsync(int userId)
-        {
-            var addresses = await _unitOfWork.GetRepository<Address>().FindAsync(a => a.UserId == userId);
-            return addresses.Select(a => new AddressViewModel
-            {
-                Id = a.Id,
-                UserId = a.UserId,
-                BuildingNumber = a.BuildingNumber,
-                Street = a.Street,
-                City = a.City,
-                ZipCode = a.ZipCode
-            });
+            _mapper = mapper;
         }
 
 
-        public async Task DeleteAddressAsync(int addressId)
+        public async Task<AddressDTO> CreateAddressAsync(CreateAddressDTO createAddressDTO)
         {
-            var address = await _unitOfWork.GetRepository<Address>().GetByIdAsync(addressId);
-            if (address == null) return;
-
-            _unitOfWork.GetRepository<Address>().Delete(address);
+            var addressEntity = _mapper.Map<Address>(createAddressDTO);
+            await _unitOfWork.GetRepository<Address>().AddAsync(addressEntity);
             await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<AddressDTO>(addressEntity);
         }
-        public async Task<AddressViewModel?> AddAddressAsync(int userId, int buildingNumber, string street, string city, int zipCode)
+
+        public async Task<bool> DeleteAddressAsync(int addressId)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
-            if (user == null)
-                return null; // user doesn't exist
+            if (addressId <= 0)
+                return false;
 
-            var address = new Address
-            {
-                UserId = userId,
-                BuildingNumber = buildingNumber,
-                Street = street,
-                City = city,
-                ZipCode = zipCode
-            };
+            var addressRepository = _unitOfWork.GetRepository<Address>();
+            var address = await addressRepository.GetByIdAsync(addressId);
 
-            await _unitOfWork.GetRepository<Address>().AddAsync(address);
+            if (address == null)
+                return false;
+
+            addressRepository.Delete(address);
             await _unitOfWork.SaveChangesAsync();
-
-            return new AddressViewModel
-            {
-                Id = address.Id,
-                UserId = address.UserId,
-                BuildingNumber = address.BuildingNumber,
-                Street = address.Street,
-                City = address.City,
-                ZipCode = address.ZipCode
-            };
+            return true;
         }
+
+        public async Task<AddressDTO> GetAddressByIdAsync(int addressId)
+        {
+            if (addressId <= 0)
+                throw new ArgumentException("Invalid address ID.");
+
+            var address = await _unitOfWork.GetRepository<Address>().GetByIdAsync(addressId);
+            return _mapper.Map<AddressDTO>(address);
+        }
+
+        public async Task<IEnumerable<AddressDTO>> GetAllAddressesAsync()
+        {
+            var address = await _unitOfWork.GetRepository<Address>().GetAllAsync();
+            return _mapper.Map<IEnumerable<AddressDTO>>(address);
+        }
+        public async Task<IEnumerable<AddressDTO>> GetAllAddressesByUserIdAsync(int userId)
+        {
+            if (userId <= 0)
+                throw new ArgumentException("Invalid user ID.");
+
+            var addressRepository = _unitOfWork.GetRepository<Address>();
+            var allAddresses = await addressRepository.GetAllAsync();
+            var userAddresses = allAddresses.Where(a => a.UserId == userId);
+
+            return _mapper.Map<IEnumerable<AddressDTO>>(userAddresses);
+        }
+
+
     }
 }

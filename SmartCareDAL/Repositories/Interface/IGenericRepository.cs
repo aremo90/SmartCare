@@ -12,8 +12,6 @@ namespace SmartCareDAL.Repositories.Interface
     {
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<TEntity?> GetByIdAsync(int id);
-        Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate); // ✅ Add this
-        Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate); // ✅ Add this
         Task AddAsync(TEntity entity);
         void Update(TEntity entity);
         void Delete(TEntity entity);

@@ -21,8 +21,8 @@ namespace SmartCareDAL.Data.Configuration
             builder.Property(g => g.Longitude)
                 .IsRequired();
 
-            builder.Property(g => g.Timestamp)
-                .HasDefaultValueSql("GETDATE()");
+            builder.HasIndex(g => g.UserId)
+                   .IsUnique();
         }
     }
 }

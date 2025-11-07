@@ -1,5 +1,4 @@
-﻿using SmartCareBLL.ViewModels.DeviceViewModel;
-using SmartCareDAL.Models;
+﻿using SmartCareBLL.DTOS.DeviceDTOS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +9,7 @@ namespace SmartCareBLL.Services.Interfaces
 {
     public interface IDeviceService
     {
-        Task<Device?> RegisterDeviceAsync(int userId, string deviceIdentifier, string? model);
-        Task<bool> PairDeviceAsync(int userId, string deviceIdentifier);
-        Task<bool> UpdateStatusAsync(string deviceIdentifier, bool isActive, double? signalStrength);
-        Task<DeviceViewModel?> GetDeviceByUserIdAsync(int userId);
+        Task<DeviceDTO> GetDeviceInfoByUserId(int userId);
+        Task<DeviceDTO> RegisterDeviceForUser(int userId, CreateDeviceDTO createDeviceDTO);
     }
 }
