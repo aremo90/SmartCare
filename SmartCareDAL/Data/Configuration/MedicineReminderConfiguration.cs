@@ -16,27 +16,12 @@ namespace SmartCareDAL.Data.Configuration
 
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.MedicineName)
-                   .HasMaxLength(100)
-                   .IsRequired();
-
-            builder.Property(x => x.Dosage)
-                   .HasMaxLength(50)
-                   .IsRequired();
-
             builder.Property(x => x.ScheduleDate)
                    .HasColumnType("date")
                    .IsRequired();
 
             builder.Property(x => x.ScheduleTime)
                    .IsRequired();
-
-            builder.Property(x => x.RepeatPattern)
-                   .HasConversion<int>() // store enum as int
-                   .IsRequired();
-
-            builder.Property(x => x.DaysOfWeek)
-                   .HasMaxLength(50);
 
             builder.HasOne(x => x.User)
                    .WithMany(u => u.MedicineReminders)

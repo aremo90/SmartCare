@@ -1,152 +1,103 @@
-﻿using SmartCareBLL.Services.Interfaces;
-using SmartCareBLL.ViewModels.MedicineViewModel;
+﻿using AutoMapper;
+using SmartCareBLL.DTOS.MedicineReminderDTOS;
+using SmartCareBLL.DTOS.UserDTOS;
+using SmartCareBLL.Services.Interfaces;
 using SmartCareDAL.Models;
 using SmartCareDAL.Models.Enum;
 using SmartCareDAL.Repositories.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SmartCareBLL.Services.Classes
 {
-    public class MedicineReminderService : IMedicineReminderService
+    public class MedicineReminderService : IMedicineService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public MedicineReminderService(IUnitOfWork unitOfWork)
+        public MedicineReminderService(IUnitOfWork unitOfWork , IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        // ✅ Get all reminders
-        public async Task<IEnumerable<MedicineReminderViewModel>> GetAllAsync()
+        #region get all
+
+        public async Task<IEnumerable<MedicineReminderDTO>> GetAllReminderAsync()
         {
-            var reminders = await _unitOfWork.MedicineReminders.GetAllAsync();
-            return reminders.Select(MapToViewModel);
+            var reminders = await _unitOfWork.GetRepository<MedicineReminder>().GetAllAsync();
+            return _mapper.Map<IEnumerable<MedicineReminderDTO>>(reminders);
+        }
+        #endregion
+        #region get by User Id
+
+        public async Task<IEnumerable<MedicineReminderDTO>> GetReminderByUserIdAsync(int userId)
+        {
+            var allReminders = await _unitOfWork.GetRepository<MedicineReminder>().GetAllAsync();
+            var reminders = allReminders.Where(r => r.UserId == userId);
+            return _mapper.Map<IEnumerable<MedicineReminderDTO>>(reminders);
+        }
+        #endregion
+        #region GetReminder by ReminderID
+
+        public async Task<MedicineReminderDTO?> GetReminderByIdAsync(int id)
+        {
+            var reminder = await _unitOfWork.GetRepository<MedicineReminder>().GetByIdAsync(id);
+            return _mapper.Map<MedicineReminderDTO>(reminder);
+        }
+        #endregion
+
+        #region GetBy Device Identifier
+        public async Task<IEnumerable<MedicineReminderDTO>?> GetRemindersByDeviceIdentifierAsync(string deviceIdentifier)
+        {
+            var deviceRepository = _unitOfWork.GetRepository<Device>();
+            var allDevices = await deviceRepository.GetAllAsync();
+            var device = allDevices.FirstOrDefault(d => d.DeviceIdentifier == deviceIdentifier);
+
+            if (device == null)
+            {
+                return null;
+            }
+
+            return await GetReminderByUserIdAsync(device.UserId);
         }
 
-        // ✅ Get reminders by user
-        public async Task<IEnumerable<MedicineReminderViewModel>> GetByUserIdAsync(int userId)
-        {
-            var reminders = await _unitOfWork.MedicineReminders.FindAsync(r => r.UserId == userId);
-            return reminders.Select(MapToViewModel);
-        }
+        #endregion
 
-        // ✅ Get single reminder by ID
-        public async Task<MedicineReminderViewModel?> GetByIdAsync(int id)
-        {
-            var reminder = await _unitOfWork.MedicineReminders.GetByIdAsync(id);
-            return reminder == null ? null : MapToViewModel(reminder);
-        }
+        #region Create New Reminder
 
-        // ✅ Create new reminder
-        public async Task<MedicineReminderViewModel?> CreateAsync(MedicineReminderCreateViewModel model)
+        public async Task<MedicineReminderDTO?> CreateReminderAsync(MedicineReminderCreateDTO model)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(model.UserId);
+            var user = await _unitOfWork.GetRepository<User>().GetByIdAsync(model.UserId);
             if (user == null)
                 throw new ApplicationException($"User with ID {model.UserId} not found.");
 
-            var entity = new MedicineReminder
-            {
-                UserId = model.UserId,
-                MedicineName = model.MedicineName,
-                Dosage = model.Dosage,
-                ScheduleDate = model.ReminderDate.Date,
-                ScheduleTime = model.ReminderTime,
-                RepeatPattern = Enum.TryParse<RepeatType>(model.RepeatType, true, out var parsed)
-                    ? parsed
-                    : throw new ApplicationException($"Invalid RepeatType '{model.RepeatType}'. Must be one of: {string.Join(", ", Enum.GetNames(typeof(RepeatType)))}"),
-                DaysOfWeek = model.CustomDays,
-                IsTaken = false,
-                CreatedAt = DateTime.UtcNow
-            };
+            var reminder = _mapper.Map<MedicineReminder>(model);
 
-            await _unitOfWork.MedicineReminders.AddAsync(entity);
+            await _unitOfWork.GetRepository<MedicineReminder>().AddAsync(reminder);
             await _unitOfWork.SaveChangesAsync();
 
-            return MapToViewModel(entity);
+            return _mapper.Map<MedicineReminderDTO>(reminder);
         }
+        #endregion
+        #region Delete
 
-        // ✅ Update reminder
-        public async Task<bool> UpdateAsync(int id, MedicineReminderUpdateViewModel model)
+        public async Task<bool> DeleteReminderAsync(int id)
         {
-            if (model is null)
-                throw new ArgumentNullException(nameof(model));
-
-            var reminder = await _unitOfWork.MedicineReminders.GetByIdAsync(id);
+            var reminder = await _unitOfWork.GetRepository<MedicineReminder>().GetByIdAsync(id);
             if (reminder == null)
                 return false;
 
-            // Update basic info
-            if (!string.IsNullOrWhiteSpace(model.MedicineName))
-                reminder.MedicineName = model.MedicineName;
-
-            if (!string.IsNullOrWhiteSpace(model.Dosage))
-                reminder.Dosage = model.Dosage;
-
-            // Date & time
-            if (model.ReminderDate.HasValue)
-                reminder.ScheduleDate = model.ReminderDate.Value.Date;
-
-            if (model.ReminderTime.HasValue)
-                reminder.ScheduleTime = model.ReminderTime.Value;
-
-            // Repeat type → enum
-            if (!string.IsNullOrWhiteSpace(model.RepeatType))
-            {
-                if (Enum.TryParse<RepeatType>(model.RepeatType, true, out var parsed))
-                    reminder.RepeatPattern = parsed;
-                else
-                    throw new ApplicationException($"Invalid RepeatType '{model.RepeatType}'. Must be one of: {string.Join(", ", Enum.GetNames(typeof(RepeatType)))}");
-            }
-
-            // Days of week for custom patterns
-            if (!string.IsNullOrWhiteSpace(model.CustomDays))
-                reminder.DaysOfWeek = model.CustomDays;
-
-            // Mark as taken or not
-            if (model.IsTaken.HasValue)
-                reminder.IsTaken = model.IsTaken.Value;
-
-            // Timestamp & tracking
-            reminder.UpdatedAt = DateTime.UtcNow;
-
-            _unitOfWork.MedicineReminders.Update(reminder);
+            _unitOfWork.GetRepository<MedicineReminder>().Delete(reminder);
             await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
+        #endregion
 
-        // ✅ Delete reminder
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var reminder = await _unitOfWork.MedicineReminders.GetByIdAsync(id);
-            if (reminder == null)
-                return false;
 
-            _unitOfWork.MedicineReminders.Delete(reminder);
-            await _unitOfWork.SaveChangesAsync();
-
-            return true;
-        }
-
-        // 🔁 Manual mapper (entity → view model)
-        private static MedicineReminderViewModel MapToViewModel(MedicineReminder r)
-        {
-            return new MedicineReminderViewModel
-            {
-                Id = r.Id,
-                UserId = r.UserId,
-                MedicineName = r.MedicineName,
-                Dosage = r.Dosage,
-                ReminderDate = r.ScheduleDate,
-                ReminderTime = r.ScheduleTime,
-                RepeatType = r.RepeatPattern.ToString(),
-                CustomDays = r.DaysOfWeek,
-                IsTaken = r.IsTaken,
-                CreatedAt = r.CreatedAt,
-            };
-        }
     }
 }

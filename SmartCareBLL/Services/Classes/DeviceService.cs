@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using SmartCareBLL.DTOS.DeviceDTOS;
 using SmartCareBLL.Services.Interfaces;
-using SmartCareBLL.ViewModels.DeviceViewModel;
 using SmartCareDAL.Models;
 using SmartCareDAL.Repositories.Interface;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SmartCareBLL.Services.Classes
@@ -11,104 +14,73 @@ namespace SmartCareBLL.Services.Classes
     public class DeviceService : IDeviceService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public DeviceService(IUnitOfWork unitOfWork)
+        public DeviceService(IUnitOfWork unitOfWork , IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        // 🔹 Register a new device for a user
-        public async Task<Device?> RegisterDeviceAsync(int userId, string deviceIdentifier, string? model)
+
+        public async Task<DeviceDTO> GetDeviceInfoByUserId(int userId)
         {
-            // Check if user exists
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
-            if (user == null)
-                throw new Exception("User not found.");
-
-            // Check if this device already exists
-            var existingDevice = await _unitOfWork.GetRepository<Device>()
-                .FirstOrDefaultAsync(d => d.DeviceIdentifier == deviceIdentifier);
-
-            if (existingDevice != null)
-                return null;
-                //throw new Exception("Device already registered.");
-
-            var newDevice = new Device
+            if (userId <= 0)
             {
-                UserId = userId,
-                DeviceIdentifier = deviceIdentifier,
-                Model = model,
-                IsActive = true,
-                IsPaired = false,
-                CreatedAt = DateTime.UtcNow
-            };
+                throw new ArgumentException("Invalid user ID.", nameof(userId));
+            }
+            var deviceRepository = _unitOfWork.GetRepository<Device>();
 
-            await _unitOfWork.Devices.AddAsync(newDevice);
-            await _unitOfWork.SaveChangesAsync();
-
-            return newDevice;
-        }
-
-        // 🔹 Pair an existing device to a user
-        public async Task<bool> PairDeviceAsync(int userId, string deviceIdentifier)
-        {
-            var device = await _unitOfWork.Devices
-                .FirstOrDefaultAsync(d => d.DeviceIdentifier == deviceIdentifier);
+            // This approach fetches all devices and filters in memory.
+            // For better performance, consider enhancing IGenericRepository to support server-side filtering.
+            var device = (await deviceRepository.GetAllAsync()).FirstOrDefault(d => d.UserId == userId);
 
             if (device == null)
-                return false;
-
-            device.UserId = userId;
-            device.IsPaired = true;
-            device.UpdatedAt = DateTime.UtcNow;
-
-            _unitOfWork.Devices.Update(device);
-            await _unitOfWork.SaveChangesAsync();
-
-            return true;
-        }
-
-        // 🔹 Update status info (online/offline, signal, etc.)
-        public async Task<bool> UpdateStatusAsync(string deviceIdentifier, bool isActive, double? signalStrength)
-        {
-            var device = await _unitOfWork.Devices
-                .FirstOrDefaultAsync(d => d.DeviceIdentifier == deviceIdentifier);
-
-            if (device == null)
-                return false;
-
-            device.IsActive = isActive;
-            device.SignalStrength = signalStrength;
-            device.UpdatedAt = DateTime.UtcNow;
-
-            _unitOfWork.Devices.Update(device);
-            await _unitOfWork.SaveChangesAsync();
-
-            return true;
-        }
-
-        // 🔹 Get device by user ID
-        public async Task<DeviceViewModel?> GetDeviceByUserIdAsync(int userId)
-        {
-            var device = await _unitOfWork
-                .Devices
-                .FindAsync(d => d.UserId == userId);
-
-            var deviceEntity = device.FirstOrDefault();
-            if (deviceEntity == null)
-                return null;
-
-            return new DeviceViewModel
             {
-                Id = deviceEntity.Id,
-                DeviceIdentifier = deviceEntity.DeviceIdentifier,
-                Model = deviceEntity.Model,
-                IsActive = deviceEntity.IsActive,
-                SignalStrength = deviceEntity.SignalStrength,
-                UserId = deviceEntity.UserId,
-                CreatedAt = deviceEntity.CreatedAt,
-                UpdatedAt = DateTime.Now
-            };
+                return null;
+            }
+
+            return  _mapper.Map<DeviceDTO>(device);
+
+        }
+
+        public async Task<DeviceDTO> RegisterDeviceForUser(int userId, CreateDeviceDTO createDeviceDTO)
+        {
+            if (userId <= 0)
+            {
+                throw new ArgumentException("Invalid user ID.", nameof(userId));
+            }
+
+            if (createDeviceDTO == null)
+            {
+                throw new ArgumentNullException(nameof(createDeviceDTO));
+            }
+
+            if (string.IsNullOrWhiteSpace(createDeviceDTO.DeviceIdentifier))
+            {
+                throw new ArgumentException("Device identifier cannot be empty.", nameof(createDeviceDTO.DeviceIdentifier));
+            }
+
+            var deviceRepository = _unitOfWork.GetRepository<Device>();
+            var allDevices = await deviceRepository.GetAllAsync();
+
+            if (allDevices.Any(d => d.UserId == userId))
+            {
+                throw new InvalidOperationException("A device is already registered for this user.");
+            }
+
+            if (allDevices.Any(d => d.DeviceIdentifier == createDeviceDTO.DeviceIdentifier))
+            {
+                throw new InvalidOperationException("This device identifier is already in use.");
+            }
+
+            var newDevice = _mapper.Map<Device>(createDeviceDTO);
+            newDevice.UserId = userId;
+
+            await deviceRepository.AddAsync(newDevice);
+            await _unitOfWork.SaveChangesAsync();
+
+            return _mapper.Map<DeviceDTO>(newDevice);
         }
     }
 }

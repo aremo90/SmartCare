@@ -1,46 +1,41 @@
 ﻿using AutoMapper;
-using SmartCareBLL.ViewModels;
-using SmartCareBLL.ViewModels.MedicineViewModel;
+using SmartCareBLL.DTOS.AddressDTOS;
+using SmartCareBLL.DTOS.DeviceDTOS;
+using SmartCareBLL.DTOS.GpsDTOS;
+using SmartCareBLL.DTOS.MedicineReminderDTOS;
+using SmartCareBLL.DTOS.UserDTOS;
 using SmartCareDAL.Models;
-using SmartCareDAL.Models.Enum;
 using System;
 
 namespace SmartCareBLL.Mapping
 {
     public class AutoMapperProfile : Profile
     {
+
         public AutoMapperProfile()
         {
-            // User mappings
-            CreateMap<User, UserViewModel>().ReverseMap()
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
+            CreateMap<User, UserDTO>()
+                .ForMember(dest => dest.DeviceIdentifier , opt => opt.MapFrom(src => src.Device.DeviceIdentifier))      
+                .ForMember(dest => dest.DeviceName , opt => opt.MapFrom(src => src.Device.DeviceName));      
 
-        CreateMap<User, UserListViewModel>();
+            CreateMap<Address, AddressDTO>();
+            CreateMap<CreateAddressDTO, Address>();
+            CreateMap<Address, CreateAddressDTO>();
 
-            CreateMap<UserCreateViewModel, User>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => Enum.Parse<Gender>(src.Gender, true)))
-                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
+            CreateMap<Device,DeviceDTO>();
+            CreateMap<Device, CreateDeviceDTO>();
+            CreateMap<CreateDeviceDTO, Device>();
 
-            CreateMap<UserUpdateViewModel, User>()
-                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<MedicineReminder, MedicineReminderDTO>();
+            CreateMap<MedicineReminderDTO, MedicineReminder>();
 
-            // Medicine Reminder mappings
-            CreateMap<MedicineReminderCreateViewModel, MedicineReminder>()
-                .ForMember(dest => dest.ScheduleDate, opt => opt.MapFrom(src => src.ReminderDate))
-                .ForMember(dest => dest.ScheduleTime, opt => opt.MapFrom(src => src.ReminderTime))
-                .ForMember(dest => dest.RepeatPattern, opt => opt.MapFrom(src => ParseRepeatType(src.RepeatType)))
-                .ForMember(dest => dest.DaysOfWeek, opt => opt.MapFrom(src => src.CustomDays))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
+            CreateMap<MedicineReminder, MedicineReminderCreateDTO>();
+            CreateMap<MedicineReminder, MedicineReminderCreateDTO>().ReverseMap();
+
+            CreateMap<GpsLocation, GpsDTO>();
+            CreateMap<GpsLocation, GpsDTO>().ReverseMap();
         }
 
-        private static RepeatType ParseRepeatType(string repeatType)
-        {
-            if (Enum.TryParse<RepeatType>(repeatType, true, out var result))
-                return result;
-
-            throw new ArgumentException($"Invalid RepeatType value: {repeatType}");
-        }
     }
 
 }

@@ -1,4 +1,4 @@
-﻿using SmartCareBLL.ViewModels.AddressViewModel;
+﻿using SmartCareBLL.DTOS.AddressDTOS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +9,10 @@ namespace SmartCareBLL.Services.Interfaces
 {
     public interface IAddressService
     {
-        Task<AddressViewModel?> AddAddressAsync(int userId, int buildingNumber, string street, string city, int zipCode);
-        Task<IEnumerable<ViewModels.AddressViewModel.AddressViewModel>> GetAddressesByUserIdAsync(int userId);
-        Task<ViewModels.AddressViewModel.AddressViewModel> GetAddressByIdAsync(int addressId);
-        Task DeleteAddressAsync(int addressId);
+        Task<IEnumerable<AddressDTO>> GetAllAddressesAsync();
+        Task<AddressDTO> GetAddressByIdAsync(int addressId);
+        Task<IEnumerable<AddressDTO>> GetAllAddressesByUserIdAsync(int userId);
+        Task<AddressDTO> CreateAddressAsync(CreateAddressDTO createAddressDTO);
+        Task<bool> DeleteAddressAsync(int addressId);
     }
 }

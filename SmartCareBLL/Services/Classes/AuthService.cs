@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using SmartCareBLL.DTOS.AuthDTOS;
 using SmartCareBLL.Services.Interfaces;
-using SmartCareBLL.ViewModels;
-using SmartCareBLL.ViewModels.LoginViewModel;
-using SmartCareDAL.Data.Context;
 using SmartCareDAL.Models;
 using SmartCareDAL.Models.Enum;
 using SmartCareDAL.Repositories.Interface;
@@ -12,9 +10,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
 
 namespace SmartCareBLL.Services.Classes
 {
@@ -22,35 +17,39 @@ namespace SmartCareBLL.Services.Classes
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration)
+        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration,IUserRepository userRepository)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+            _userRepository = userRepository;
         }
 
+
         // Login
-        public async Task<(string Token , int UserID)> LoginAsync(string email, string password)
+        public async Task<(string Token, int UserID)> LoginAsync(string email, string password)
         {
-            var user = (await _unitOfWork.Users.FindAsync(u => u.Email == email)).FirstOrDefault();
+            var user = await _userRepository.GetByEmailAsync(email);
+            
 
             if (user == null || !VerifyPassword(password, user.PasswordHash))
                 throw new ApplicationException("Invalid email or password");
 
 
             var token = GenerateToken(user);
-            return (token , user.Id);
+            return (token, user.Id);
         }
 
         // Signup
         public async Task<User> RegisterAsync(string firstName, string lastName, string email, string password, string gender, DateTime dateOfBirth, string phoneNumber)
         {
-            // 1️⃣ Check if email already exists
-            var exists = (await _unitOfWork.Users.FindAsync(u => u.Email == email)).Any();
-            if (exists)
+            // 1️ Check if email already exists
+            var exists = await _userRepository.GetByEmailAsync(email);
+            if (exists != null)
                 throw new ApplicationException($"Email '{email}' is already taken.");
 
-            // 3️⃣ Create new user entity
+            // 2 Create new user entity
             var user = new User
             {
                 FirstName = firstName,
@@ -60,11 +59,11 @@ namespace SmartCareBLL.Services.Classes
                 Gender = Enum.Parse<Gender>(gender, ignoreCase: true),
                 DateOfBirth = dateOfBirth,
                 PhoneNumber = phoneNumber.Trim(),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
-            // 4️⃣ Save changes to database
-            await _unitOfWork.Users.AddAsync(user);
+            // 3 Save changes to database
+            await _unitOfWork.GetRepository<User>().AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
             return user;
