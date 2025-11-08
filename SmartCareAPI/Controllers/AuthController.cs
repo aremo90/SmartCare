@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SmartCareBLL.AuthDTOS.LoginViewDTO;
+using SmartCareBLL.DTOS.AuthDTOS;
+using SmartCareBLL.DTOS.UserDTOS;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareBLL.ViewModels;
 using SmartCareBLL.ViewModels.Common;
@@ -15,13 +18,13 @@ namespace SmartCareAPI.Controllers
         public AuthController(IAuthService authService) => _authService = authService;
 
         [HttpPost("signup")]
-        public async Task<IActionResult> Signup([FromBody] UserCreateViewModel model)
+        public async Task<IActionResult> Signup([FromBody] SignUpDTO model)
         {
             try
             {
                 var user = await _authService.RegisterAsync(
                     model.FirstName, model.LastName, model.Email,
-                    model.Password, model.Gender, model.DateOfBirth, model.PhoneNumber);
+                    model.Password, model.Gender.ToString(), model.DateOfBirth, model.PhoneNumber);
 
                 var responseData = new
                 {
@@ -43,7 +46,7 @@ namespace SmartCareAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginViewModel model)
+        public async Task<IActionResult> Login([FromBody] LoginViewDTO model)
         {
             try
             {

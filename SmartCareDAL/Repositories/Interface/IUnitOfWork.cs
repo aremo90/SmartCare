@@ -7,17 +7,11 @@ using System.Threading.Tasks;
 
 namespace SmartCareDAL.Repositories.Interface
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork 
     {
+        Task<int> SaveChangesAsync();
         IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new();
 
-        // Custom Repositories (only ones with domain logic)
-        IUserRepository Users { get; }
-        IMedicineReminderRepository MedicineReminders { get; }
-        IDeviceCommandRepository DeviceCommands { get; }
-        public IDeviceRepository Devices { get; }
 
-        int SaveChanges();
-        Task<int> SaveChangesAsync();
     }
 }

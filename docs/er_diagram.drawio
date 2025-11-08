@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="ER Diagram">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Users -->
+        <mxCell id="users_shape" value="Users\n- Id (PK)\n- FirstName\n- LastName\n- Email (UQ)\n- PasswordHash\n- Gender\n- DateOfBirth\n- PhoneNumber\n- CreatedAt\n- UpdatedAt" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="220" height="260" as="geometry"/>
+        </mxCell>
+
+        <!-- Addresses -->
+        <mxCell id="addresses_shape" value="Addresses\n- Id (PK)\n- UserId (FK)\n- BuildingNumber\n- Street\n- City\n- ZipCode\n- CreatedAt\n- UpdatedAt" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="320" y="40" width="220" height="220" as="geometry"/>
+        </mxCell>
+
+        <!-- Devices -->
+        <mxCell id="devices_shape" value="Devices\n- Id (PK)\n- UserId (FK)\n- DeviceIdentifier (UQ)\n- Model\n- IsActive\n- IsPaired\n- SignalStrength\n- CreatedAt\n- UpdatedAt" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="320" y="300" width="260" height="240" as="geometry"/>
+        </mxCell>
+
+        <!-- DeviceCommands -->
+        <mxCell id="devicecommands_shape" value="DeviceCommands\n- Id (PK)\n- UserId (FK)\n- CommandType\n- CommandData\n- IsExecuted\n- ExecutedAt\n- CreatedAt\n- UpdatedAt" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="640" y="40" width="240" height="220" as="geometry"/>
+        </mxCell>
+
+        <!-- MedicineReminders -->
+        <mxCell id="medicinereminders_shape" value="MedicineReminders\n- Id (PK)\n- UserId (FK)\n- MedicineName\n- Dosage\n- ScheduleDate\n- ScheduleTime\n- RepeatPattern\n- DaysOfWeek\n- IsTaken\n- CreatedAt\n- UpdatedAt" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="340" width="260" height="260" as="geometry"/>
+        </mxCell>
+
+        <!-- GpsLocations -->
+        <mxCell id="gpslocations_shape" value="GpsLocations\n- Id (PK)\n- UserId (FK)\n- Latitude\n- Longitude\n- Timestamp\n- CreatedAt\n- UpdatedAt" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="640" y="300" width="220" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Connectors: Users -> Addresses -->
+        <mxCell id="edge_users_addresses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" edge="1" parent="1" source="users_shape" target="addresses_shape">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Users -> Devices -->
+        <mxCell id="edge_users_devices" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" edge="1" parent="1" source="users_shape" target="devices_shape">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Users -> DeviceCommands -->
+        <mxCell id="edge_users_devicecommands" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" edge="1" parent="1" source="users_shape" target="devicecommands_shape">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Users -> MedicineReminders -->
+        <mxCell id="edge_users_medicinereminders" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" edge="1" parent="1" source="users_shape" target="medicinereminders_shape">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Users -> GpsLocations -->
+        <mxCell id="edge_users_gpslocations" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" edge="1" parent="1" source="users_shape" target="gpslocations_shape">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

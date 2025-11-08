@@ -15,7 +15,7 @@ namespace SmartCareAPI
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -30,14 +30,14 @@ namespace SmartCareAPI
             // ---------------------------
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IUserService , UserService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IMedicineReminderRepository, MedicineReminderRepository>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IAddressService, AddressService>();
-            builder.Services.AddScoped<IMedicineReminderService, MedicineReminderService>();
-            builder.Services.AddScoped<IDeviceCommandRepository, DeviceCommandRepository>();
-            builder.Services.AddScoped<IDeviceCommandService, DeviceCommandService>();
-            builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
             builder.Services.AddScoped<IDeviceService, DeviceService>();
+            builder.Services.AddScoped<IMedicineService, MedicineReminderService>();
+            builder.Services.AddScoped<IGpsService, GpsService>();
+            builder.Services.AddAutoMapper(X => X.AddProfile<AutoMapperProfile>());
 
 
             builder.Services.AddControllers()
@@ -81,6 +81,18 @@ namespace SmartCareAPI
                     ClockSkew = TimeSpan.Zero
                 };
             });
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy
+                        .SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+
             builder.Services.AddAuthorization();
             builder.Services.AddControllers();
 
@@ -97,16 +109,15 @@ namespace SmartCareAPI
             // ---------------------------
             var app = builder.Build();
 
-            //if (app.Environment.IsDevelopment())
-            //{
-                app.MapOpenApi();
-            //}
+            app.MapOpenApi();
+
 
             app.UseHttpsRedirection();
 
             // ---------------------------
             // 8️⃣ Authentication & Authorization
             // ---------------------------
+            app.UseCors("AllowFrontend");
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -120,3 +131,5 @@ namespace SmartCareAPI
         }
     }
 }
+
+    

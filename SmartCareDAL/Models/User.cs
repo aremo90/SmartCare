@@ -17,10 +17,10 @@ namespace SmartCareDAL.Models
 
 
         // Navigation properties
+        public Device? Device { get; set; }
+        public GpsLocation? GpsLocation { get; set; }
         public ICollection<Address>? Addresses { get; set; }
         public ICollection<MedicineReminder>? MedicineReminders { get; set; }
-        public ICollection<GpsLocation>? GpsLocations { get; set; }
-        public Device? Device { get; set; }
     }
 
 }

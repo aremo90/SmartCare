@@ -1,8 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartCareBLL.DTOS.UserDTOS;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareBLL.ViewModels;
 using SmartCareBLL.ViewModels.Common;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SmartCareAPI.Controllers
 {
@@ -11,50 +15,48 @@ namespace SmartCareAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserController(IUserService userService) => _userService = userService;
+
+        public UserController(IUserService userService)
+        {
+            _userService = userService;
+        }
+        #region Get All Users
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllUser()
         {
-            var users = await _userService.GetAllAsync();
-            return Ok(ApiResponse<IEnumerable<UserViewModel>>.SuccessResponse(users, "Users retrieved successfully"));
+            var users = await _userService.GetAllUsersAsync();
+            return Ok(ApiResponse<IEnumerable<UserDTO>>.SuccessResponse(users, "Users retrieved successfully"));
         }
+        #endregion
+
+        #region Get user By Id
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var user = await _userService.GetByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
                 return NotFound(ApiResponse<string>.FailResponse("User not found"));
-            return Ok(ApiResponse<UserViewModel>.SuccessResponse(user, "User retrieved successfully"));
+            return Ok(ApiResponse<UserDTO>.SuccessResponse(user, "User retrieved successfully"));
         }
+        #endregion
 
-        [HttpGet("byEmail")]
-        public async Task<IActionResult> GetByEmail([FromQuery] string email)
-        {
-            var user = await _userService.GetByEmailAsync(email);
-            if (user == null)
-                return NotFound(ApiResponse<string>.FailResponse("User not found"));
-            return Ok(ApiResponse<UserViewModel>.SuccessResponse(user, "User retrieved successfully"));
-        }
+        #region Update User Info
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UserUpdateViewModel model)
+        public async Task<IActionResult> Update(int id, [FromBody] UserToUpdateDTO model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<string>.FailResponse("Invalid data"));
 
             try
             {
-                var updatedUser = await _userService.UpdateAsync(id, model);
+                var updatedUser = await _userService.UpdateUserByIdAsync(id, model);
                 if (updatedUser == null)
                     return NotFound(ApiResponse<string>.FailResponse("User not found"));
 
-                return Ok(ApiResponse<UserViewModel>.SuccessResponse(updatedUser, "User updated successfully"));
-            }
-            catch (ApplicationException ex)
-            {
-                return Conflict(ApiResponse<string>.FailResponse(ex.Message));
+                return Ok(ApiResponse<UserDTO>.SuccessResponse(updatedUser, "User updated successfully"));
             }
             catch (Exception)
             {
@@ -62,15 +64,19 @@ namespace SmartCareAPI.Controllers
             }
         }
 
+        #endregion
+
+        #region Delete User
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _userService.DeleteAsync(id);
-            if (!result)
+            var result = await _userService.DeleteUserByIdAsync(id);
+            if (result == null)
                 return NotFound(ApiResponse<string>.FailResponse("User not found"));
 
             return Ok(ApiResponse<string>.SuccessResponse("User deleted successfully"));
         }
+        #endregion
     }
 }

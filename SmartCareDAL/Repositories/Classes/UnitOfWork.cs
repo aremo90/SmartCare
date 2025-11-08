@@ -10,58 +10,30 @@ using System.Threading.Tasks;
 
 namespace SmartCareDAL.Repositories.Classes
 {
-    public class UnitOfWork : IUnitOfWork, IDisposable
+    public class UnitOfWork : IUnitOfWork
     {
         private readonly SmartCareDbContext _dbContext;
-        private readonly Dictionary<Type, object> _repositories; // ✅ initialized in constructor
+        private readonly Dictionary<Type, object> _repositories = [];
 
-        public IUserRepository Users { get; }
-        public IMedicineReminderRepository MedicineReminders { get; }
-        public IDeviceCommandRepository DeviceCommands { get; }
-        public IDeviceRepository Devices { get; }
-
-        public UnitOfWork(
-            SmartCareDbContext dbContext,
-            IUserRepository userRepository,
-            IMedicineReminderRepository medicineReminderRepository,
-            IDeviceCommandRepository deviceCommandRepo,
-            IDeviceRepository deviceRepository)
+        public UnitOfWork(SmartCareDbContext dbContext)
         {
             _dbContext = dbContext;
-            Users = userRepository;
-            MedicineReminders = medicineReminderRepository;
-            DeviceCommands = deviceCommandRepo;
-            Devices = deviceRepository;
-
-            _repositories = new Dictionary<Type, object>(); // ✅ Initialize dictionary
         }
 
         public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new()
         {
-            var type = typeof(TEntity);
-
-            if (!_repositories.ContainsKey(type))
+            var EntityType = typeof(TEntity);
+            if (_repositories.TryGetValue(EntityType , out var repository))
             {
-                var repoInstance = new GenericRepository<TEntity>(_dbContext);
-                _repositories[type] = repoInstance;
+                return (IGenericRepository<TEntity>)repository;
             }
-
-            return (IGenericRepository<TEntity>)_repositories[type];
+            var newRepository = new GenericRepository<TEntity>(_dbContext);
+            _repositories[EntityType] = newRepository;
+            return newRepository;
         }
 
-        public int SaveChanges()
-        {
-            return _dbContext.SaveChanges();
-        }
+        public async Task<int> SaveChangesAsync() =>
+            await _dbContext.SaveChangesAsync();
 
-        public async Task<int> SaveChangesAsync()
-        {
-            return await _dbContext.SaveChangesAsync();
-        }
-
-        public void Dispose()
-        {
-            _dbContext.Dispose();
-        }
     }
 }

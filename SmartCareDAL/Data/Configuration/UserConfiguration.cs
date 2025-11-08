@@ -51,15 +51,17 @@ namespace SmartCareDAL.Data.Configuration
                 .HasForeignKey(m => m.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(u => u.GpsLocations)
-                .WithOne(g => g.User)
-                .HasForeignKey(g => g.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(u => u.Device)
                 .WithOne(d => d.User)
                 .HasForeignKey<Device>(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(u => u.GpsLocation)
+                .WithOne(g => g.User)
+                .HasForeignKey<GpsLocation>(g => g.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
         }
     }

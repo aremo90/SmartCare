@@ -19,22 +19,12 @@ namespace SmartCareDAL.Data.Configuration
                    .IsRequired()
                    .HasMaxLength(100);
 
-            builder.Property(d => d.Model)
-                   .HasMaxLength(100);
+            builder.Property(d => d.DeviceName)
+                   .IsRequired()
+                   .HasMaxLength(30);
 
-            builder.Property(d => d.IsActive)
-                   .IsRequired();
-
-            builder.Property(d => d.IsPaired)
-                   .HasDefaultValue(false);
-
-            builder.Property(d => d.SignalStrength)
-                   .HasColumnType("float");
-
-            builder.HasOne(d => d.User)
-                .WithOne(u => u.Device)
-                .HasForeignKey<Device>(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasIndex(d => d.UserId)
+                   .IsUnique();
         }
     }
 }

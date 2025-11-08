@@ -1,0 +1,89 @@
+@startuml
+' ER diagram for SmartCare (derived from DAL models)
+' Render with PlantUML (plantuml docs/er_diagram.puml)
+
+entity "Users" as Users {
+  * Id : int <<PK>>
+  --
+  FirstName : nvarchar(100)
+  LastName : nvarchar(100)
+  Email : nvarchar(255) <<UQ>>
+  PasswordHash : nvarchar(500)
+  Gender : int
+  DateOfBirth : date
+  PhoneNumber : nvarchar(50)
+  CreatedAt : datetime2
+  UpdatedAt : datetime2
+}
+
+entity "Addresses" as Addresses {
+  * Id : int <<PK>>
+  --
+  UserId : int <<FK>>
+  BuildingNumber : int
+  Street : nvarchar(200)
+  City : nvarchar(100)
+  ZipCode : int
+  CreatedAt : datetime2
+  UpdatedAt : datetime2
+}
+
+entity "Devices" as Devices {
+  * Id : int <<PK>>
+  --
+  UserId : int <<FK>>
+  DeviceIdentifier : nvarchar(200) <<UQ>>
+  Model : nvarchar(100)
+  IsActive : bit
+  IsPaired : bit
+  SignalStrength : float
+  CreatedAt : datetime2
+  UpdatedAt : datetime2
+}
+
+entity "DeviceCommands" as DeviceCommands {
+  * Id : int <<PK>>
+  --
+  UserId : int <<FK>>
+  CommandType : nvarchar(50)
+  CommandData : nvarchar(255)
+  IsExecuted : bit
+  ExecutedAt : datetime2
+  CreatedAt : datetime2
+  UpdatedAt : datetime2
+}
+
+entity "MedicineReminders" as MedicineReminders {
+  * Id : int <<PK>>
+  --
+  UserId : int <<FK>>
+  MedicineName : nvarchar(100)
+  Dosage : nvarchar(50)
+  ScheduleDate : date
+  ScheduleTime : time
+  RepeatPattern : int
+  DaysOfWeek : nvarchar(50)
+  IsTaken : bit
+  CreatedAt : datetime2
+  UpdatedAt : datetime2
+}
+
+entity "GpsLocations" as GpsLocations {
+  * Id : int <<PK>>
+  --
+  UserId : int <<FK>>
+  Latitude : float
+  Longitude : float
+  Timestamp : datetime2
+  CreatedAt : datetime2
+  UpdatedAt : datetime2
+}
+
+' Relationships
+Users ||--o{ Addresses : "has"
+Users ||--o{ Devices : "owns"
+Users ||--o{ DeviceCommands : "issues"
+Users ||--o{ MedicineReminders : "schedules"
+Users ||--o{ GpsLocations : "reports"
+
+@enduml
