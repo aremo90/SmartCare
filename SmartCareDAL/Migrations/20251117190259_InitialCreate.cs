@@ -22,7 +22,7 @@ namespace SmartCareDAL.Migrations
                     Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Gender = table.Column<int>(type: "int", nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(11)", maxLength: 11, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -135,8 +135,15 @@ namespace SmartCareDAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    ScheduleDate = table.Column<DateTime>(type: "date", nullable: false),
-                    ScheduleTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    MedicationName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Dosage = table.Column<int>(type: "int", nullable: false),
+                    Unit = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    MedicationType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Frequency = table.Column<int>(type: "int", nullable: false),
+                    CustomDays = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    ScheduleTime = table.Column<TimeOnly>(type: "time", nullable: false),
+                    IsTaken = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },

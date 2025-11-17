@@ -14,7 +14,7 @@ namespace SmartCareDAL.Models
 
         [Required]
         [MaxLength(50)]
-        public string CommandTypes { get; set; } = null!; // e.g., "Beep", "Vibrate", etc.
+        public string CommandType { get; set; } = null!; // e.g., "Beep", "Vibrate", etc.
 
         [MaxLength(255)]
         public string? CommandData { get; set; } // e.g., duration or intensity
