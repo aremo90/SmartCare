@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SmartCareBLL.DTOS.MedicineReminderDTO;
 using SmartCareBLL.DTOS.MedicineReminderDTOS;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareBLL.ViewModels.Common;
@@ -27,7 +28,7 @@ namespace SmartCareAPI.Controllers
             try
             {
                 var reminders = await _medicineService.GetAllReminderAsync();
-                return Ok(ApiResponse<IEnumerable<MedicineReminderDTO>>.SuccessResponse(reminders));
+                return Ok(ApiResponse<IEnumerable<MedicineReminderGroupedDTO>>.SuccessResponse(reminders));
             }
             catch (Exception)
             {
@@ -41,7 +42,7 @@ namespace SmartCareAPI.Controllers
             try
             {
                 var reminders = await _medicineService.GetReminderByUserIdAsync(userId);
-                return Ok(ApiResponse<IEnumerable<MedicineReminderDTO>>.SuccessResponse(reminders));
+                return Ok(ApiResponse<IEnumerable<MedicineReminderGroupedDTO>>.SuccessResponse(reminders));
             }
             catch (Exception)
             {
@@ -56,9 +57,9 @@ namespace SmartCareAPI.Controllers
             {
                 var reminder = await _medicineService.GetReminderByIdAsync(id);
                 if (reminder == null)
-                    return NotFound(ApiResponse<MedicineReminderDTO>.FailResponse($"Reminder with ID {id} not found."));
+                    return NotFound(ApiResponse<MedicineReminderGroupedDTO>.FailResponse($"Reminder with ID {id} not found."));
                 
-                return Ok(ApiResponse<MedicineReminderDTO>.SuccessResponse(reminder));
+                return Ok(ApiResponse<MedicineReminderGroupedDTO>.SuccessResponse(reminder));
             }
             catch (Exception)
             {
@@ -67,8 +68,8 @@ namespace SmartCareAPI.Controllers
         }
 
         [HttpGet("esp/{deviceIdentifier}")]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<MedicineReminderDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<MedicineReminderDTO>>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<DeviceReminderDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<DeviceReminderDTO>>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetRemindersByDevice(string deviceIdentifier)
         {
             try
@@ -78,10 +79,10 @@ namespace SmartCareAPI.Controllers
                 if (reminders == null)
                 {
                     string errorMessage = $"Device with identifier '{deviceIdentifier}' not found.";
-                    return NotFound(ApiResponse<IEnumerable<MedicineReminderDTO>>.FailResponse(errorMessage));
+                    return NotFound(ApiResponse<IEnumerable<DeviceReminderDTO>>.FailResponse(errorMessage));
                 }
 
-                return Ok(ApiResponse<IEnumerable<MedicineReminderDTO>>.SuccessResponse(reminders));
+                return Ok(ApiResponse<IEnumerable<DeviceReminderDTO>>.SuccessResponse(reminders, "Success"));
             }
             catch (Exception)
             {
@@ -94,12 +95,12 @@ namespace SmartCareAPI.Controllers
         {
             try
             {
-                var createdReminder = await _medicineService.CreateReminderAsync(model);
-                if (createdReminder == null)
+                var createdReminderGroup = await _medicineService.CreateReminderAsync(model);
+                if (createdReminderGroup == null)
                 {
                     return BadRequest(ApiResponse<string>.FailResponse("Could not create reminder."));
                 }
-                return CreatedAtAction(nameof(GetReminderById), new { id = createdReminder.Id }, ApiResponse<MedicineReminderDTO>.SuccessResponse(createdReminder));
+                return CreatedAtAction(nameof(GetRemindersByUserId), new { userId = createdReminderGroup.UserId }, ApiResponse<MedicineReminderGroupedDTO>.SuccessResponse(createdReminderGroup));
             }
             catch (ApplicationException ex)
             {

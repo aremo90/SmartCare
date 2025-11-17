@@ -26,8 +26,8 @@ namespace SmartCareBLL.Mapping
             CreateMap<Device, CreateDeviceDTO>();
             CreateMap<CreateDeviceDTO, Device>();
 
-            CreateMap<MedicineReminder, MedicineReminderDTO>();
-            CreateMap<MedicineReminderDTO, MedicineReminder>();
+            CreateMap<MedicineReminder    , MedicineReminderDTO>();
+            CreateMap<MedicineReminderDTO , MedicineReminder>();
 
             CreateMap<MedicineReminder, MedicineReminderCreateDTO>();
             CreateMap<MedicineReminder, MedicineReminderCreateDTO>().ReverseMap();

@@ -42,7 +42,7 @@ namespace SmartCareBLL.Services.Classes
         }
 
         // Signup
-        public async Task<User> RegisterAsync(string firstName, string lastName, string email, string password, string gender, DateTime dateOfBirth, string phoneNumber)
+        public async Task<User> RegisterAsync(string firstName, string lastName, string email, string password, string gender, DateOnly dateOfBirth, string phoneNumber)
         {
             // 1️ Check if email already exists
             var exists = await _userRepository.GetByEmailAsync(email);

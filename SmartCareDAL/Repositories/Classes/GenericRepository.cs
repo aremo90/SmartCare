@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SmartCareDAL.Data.Context;
+using SmartCareDAL.Data.Evaluator;
 using SmartCareDAL.Models;
 using SmartCareDAL.Repositories.Interface;
+using SmartCareDAL.Specification;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,5 +37,16 @@ namespace SmartCareDAL.Repositories.Classes
         public void Delete(TEntity entity) =>
             _dbContext.Set<TEntity>().Remove(entity);
 
+        public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity> specification)
+        {
+            var Query = SpecificationEvaluator.CreateQuery(_dbContext.Set<TEntity>(), specification);
+            return await Query.ToListAsync();
+        }
+
+        public async Task<TEntity?> GetByIdAsync(ISpecification<TEntity> specification)
+        {
+            var Query = SpecificationEvaluator.CreateQuery(_dbContext.Set<TEntity>(), specification).FirstOrDefaultAsync();
+            return await Query;
+        }
     }
 }

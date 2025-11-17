@@ -5,6 +5,7 @@ using SmartCareBLL.Services.Interfaces;
 using SmartCareBLL.ViewModels;
 using SmartCareDAL.Models;
 using SmartCareDAL.Repositories.Interface;
+using SmartCareDAL.Specification.Users_Specifictaion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,13 +26,17 @@ namespace SmartCareBLL.Services.Classes
 
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
         {
-            var Users = await _unitOfWork.GetRepository<User>().GetAllAsync();
+
+            var Spec = new UserWithDeviceInfoSpecification();
+
+            var Users = await _unitOfWork.GetRepository<User>().GetAllAsync(Spec);
             return _mapper.Map<IEnumerable<UserDTO>>(Users);
         }
 
         public async Task<UserDTO> GetUserByIdAsync(int userId)
         {
-            var user = await _unitOfWork.GetRepository<User>().GetByIdAsync(userId);
+            var Spec = new UserWithDeviceInfoSpecification(userId);
+            var user = await _unitOfWork.GetRepository<User>().GetByIdAsync(Spec);
             return _mapper.Map<UserDTO>(user);
         }
 

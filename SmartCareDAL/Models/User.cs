@@ -12,7 +12,7 @@ namespace SmartCareDAL.Models
         public string Email { get; set; } = null!;
         public string PasswordHash { get; set; } = null!;
         public Gender Gender { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
         public string PhoneNumber { get; set; } = null!;
 
 

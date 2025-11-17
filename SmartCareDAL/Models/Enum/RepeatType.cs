@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace SmartCareDAL.Models.Enum
 {
     public enum RepeatType
-    {
-        Once = 0, 
+    { 
         Daily = 1, 
         Weekly = 2, 
         CustomDays = 3

@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SmartCareBLL.DTOS.MedicineReminderDTOS
+namespace SmartCareBLL.DTOS.MedicineReminderDTO
 {
-    public class MedicineReminderCreateDTO
+    public class DeviceReminderDTO
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateOnly ScheduleDate { get; set; } 
+        public DateOnly ScheduleDate { get; set; }
         public TimeOnly ScheduleTime { get; set; }
+        public bool IsTaken { get; set; }
     }
 }

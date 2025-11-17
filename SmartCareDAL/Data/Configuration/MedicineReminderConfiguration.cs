@@ -16,7 +16,20 @@ namespace SmartCareDAL.Data.Configuration
 
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.ScheduleDate)
+            builder.Property(x => x.MedicationName)
+                   .IsRequired()
+                   .HasMaxLength(100);
+            builder.Property(x => x.Dosage)
+                     .IsRequired();
+            builder.Property(x => x.Unit)
+                     .IsRequired()
+                     .HasMaxLength(50);
+            builder.Property(x => x.MedicationType)
+                     .IsRequired()
+                     .HasMaxLength(100);
+            builder.Property(x => x.Frequency)
+                     .IsRequired();
+            builder.Property(x => x.StartDate)
                    .HasColumnType("date")
                    .IsRequired();
 

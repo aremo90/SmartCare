@@ -25,7 +25,7 @@ namespace SmartCareBLL.DTOS.AuthDTOS
         public Gender Gender { get; set; }
 
         [Required]
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
 
         [Required]
         public string PhoneNumber { get; set; }

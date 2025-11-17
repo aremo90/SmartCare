@@ -6,7 +6,6 @@ using SmartCareBLL.Mapping;
 using SmartCareBLL.Services.Classes;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareDAL.Data.Context;
-using SmartCareDAL.Data.Helper;
 using SmartCareDAL.Repositories.Classes;
 using SmartCareDAL.Repositories.Interface;
 using System.Text;
@@ -38,13 +37,6 @@ namespace SmartCareAPI
             builder.Services.AddScoped<IMedicineService, MedicineReminderService>();
             builder.Services.AddScoped<IGpsService, GpsService>();
             builder.Services.AddAutoMapper(X => X.AddProfile<AutoMapperProfile>());
-
-
-            builder.Services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
-            });
 
 
             // ---------------------------

@@ -11,6 +11,6 @@ namespace SmartCareBLL.Services.Interfaces
     public interface IAuthService
     {
         Task<(string Token , int UserID)> LoginAsync(string email, string password);
-        public Task<User> RegisterAsync(string firstName, string lastName, string email, string password, string gender, DateTime dateOfBirth , string phoneNumber);
+        public Task<User> RegisterAsync(string firstName, string lastName, string email, string password, string gender, DateOnly dateOfBirth , string phoneNumber);
     }
 }

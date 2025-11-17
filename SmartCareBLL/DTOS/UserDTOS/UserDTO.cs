@@ -10,13 +10,13 @@ namespace SmartCareBLL.DTOS.UserDTOS
 {
     public class UserDTO
     {
-        public string? Id { get; set; }
+        public int Id { get; set; }
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
         public string Email { get; set; } = null!;
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Gender Gender { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
         public string PhoneNumber { get; set; } = null!;
 
 
