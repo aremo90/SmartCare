@@ -25,19 +25,6 @@ namespace SmartCareBLL.Services.Classes
             _mapper = mapper;
         }
 
-        #region Helpers
-        private List<DayOfWeek>? ParseCustomDays(string? customDaysString)
-        {
-            if (string.IsNullOrWhiteSpace(customDaysString))
-            {
-                return null;
-            }
-            return customDaysString.Split(',')
-                                   .Select(s => Enum.Parse<DayOfWeek>(s, true))
-                                   .ToList();
-        }
-        #endregion
-
         #region get all
 
         public async Task<IEnumerable<MedicineReminderGroupedDTO>> GetAllReminderAsync()
@@ -58,25 +45,53 @@ namespace SmartCareBLL.Services.Classes
                     Unit = g.Key.Unit,
                     MedicationType = g.Key.MedicationType,
                     Frequency = g.Key.Frequency.ToString(),
-                    CustomDays = ParseCustomDays(g.Key.CustomDays),
+                    CustomDays = ParseCustomDays(g.Key.CustomDays)?.Select(d => d.ToString()).ToList(),
                     StartDate = g.Key.StartDate,
                     ScheduleTime = g.Select(r => r.ScheduleTime).OrderBy(t => t).ToList()
                 });
 
             return groupedReminders;
         }
+
         #endregion
         #region get by User Id
 
-        public async Task<IEnumerable<MedicineReminderGroupedDTO>> GetReminderByUserIdAsync(int userId)
+        public async Task<IEnumerable<MedicineReminderDTO>> GetReminderByUserIdAsync(int userId)
+        {
+            var allReminders = await _unitOfWork.GetRepository<MedicineReminder>().GetAllAsync();
+            var userReminders = allReminders.Where(r => r.UserId == userId);
+
+            var groupedReminders = userReminders
+                .Select(r => new MedicineReminderDTO
+                {
+                    Id = r.Id,
+                    MedicationName = r.MedicationName,
+                    Dosage = r.Dosage,
+                    Unit = r.Unit,
+                    MedicationType = r.MedicationType,
+                    Frequency = r.Frequency.ToString(),
+                    CustomDays = ParseCustomDays(r.CustomDays)?.Select(d => d.ToString()).ToList(),
+                    ScheduleDate = r.StartDate,
+                    ScheduleTime =  r.ScheduleTime
+                });
+
+            return groupedReminders;
+        }
+
+        public async Task<IEnumerable<MedicineReminderGroupedDTO>> GetReminderByUserIdGroupedAsync(int userId)
         {
             var allReminders = await _unitOfWork.GetRepository<MedicineReminder>().GetAllAsync();
             var userReminders = allReminders.Where(r => r.UserId == userId);
 
             var groupedReminders = userReminders
                 .GroupBy(r => new {
-                    r.MedicationName, r.Dosage, r.Unit,
-                    r.MedicationType, r.Frequency, r.CustomDays, r.StartDate
+                    r.MedicationName,
+                    r.Dosage,
+                    r.Unit,
+                    r.MedicationType,
+                    r.Frequency,
+                    r.CustomDays,
+                    r.StartDate
                 })
                 .Select(g => new MedicineReminderGroupedDTO
                 {
@@ -87,9 +102,10 @@ namespace SmartCareBLL.Services.Classes
                     Unit = g.Key.Unit,
                     MedicationType = g.Key.MedicationType,
                     Frequency = g.Key.Frequency.ToString(),
-                    CustomDays = ParseCustomDays(g.Key.CustomDays),
+                    CustomDays = ParseCustomDays(g.Key.CustomDays)?.Select(d => d.ToString()).ToList(),
                     StartDate = g.Key.StartDate,
-                    ScheduleTime = g.Select(r => r.ScheduleTime).OrderBy(t => t).ToList()
+                    ScheduleTime = g.Select(r => r.ScheduleTime).OrderBy(t => t).ToList(),
+                    IsTaken = g.Select(r => r.IsTaken).FirstOrDefault()
                 });
 
             return groupedReminders;
@@ -128,13 +144,12 @@ namespace SmartCareBLL.Services.Classes
                 Unit = reminder.Unit,
                 MedicationType = reminder.MedicationType,
                 Frequency = reminder.Frequency.ToString(),
-                CustomDays = ParseCustomDays(reminder.CustomDays),
+                CustomDays = ParseCustomDays(reminder.CustomDays)?.Select(d => d.ToString()).ToList(),
                 StartDate = reminder.StartDate,
                 ScheduleTime = siblingReminders.Select(r => r.ScheduleTime).OrderBy(t => t).ToList()
             };
         }
         #endregion
-
         #region GetBy Device Identifier
         public async Task<IEnumerable<DeviceReminderDTO>?> GetRemindersByDeviceIdentifierAsync(string deviceIdentifier)
         {
@@ -161,7 +176,6 @@ namespace SmartCareBLL.Services.Classes
             return deviceReminders;
         }
         #endregion
-
         #region Create New Reminder
 
         public async Task<MedicineReminderGroupedDTO?> CreateReminderAsync(MedicineReminderCreateDTO model)
@@ -210,7 +224,7 @@ namespace SmartCareBLL.Services.Classes
                 Unit = model.Unit,
                 MedicationType = model.MedicationType,
                 Frequency = model.Frequency.ToString(),
-                CustomDays = model.CustomDays,
+                CustomDays = model.CustomDays?.Select(d => d.ToString()).ToList(),
                 StartDate = model.StartDate,
                 ScheduleTime = model.ScheduleTime
             };
@@ -231,8 +245,104 @@ namespace SmartCareBLL.Services.Classes
 
             return true;
         }
+
+
         #endregion
 
+        #region UpdateNextReminderDate
+        public async Task UpdateNextReminderDateAsync(int reminderId)
+        {
+            var reminderRepository = _unitOfWork.GetRepository<MedicineReminder>();
+            var reminder = await reminderRepository.GetByIdAsync(reminderId);
 
+            if (reminder == null)
+            {
+                return;
+            }
+
+            AdvanceReminderDate(reminder);
+            reminderRepository.Update(reminder);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task ProcessPastDueRemindersAsync()
+        {
+            var reminderRepository = _unitOfWork.GetRepository<MedicineReminder>();
+            var allReminders = await reminderRepository.GetAllAsync();
+            var now = DateTime.Now;
+
+            var pastDueReminders = allReminders
+                .Where(r => new DateTime(r.StartDate, r.ScheduleTime) < now)
+                .ToList();
+
+            if (!pastDueReminders.Any())
+            {
+                return;
+            }
+
+            foreach (var reminder in pastDueReminders)
+            {
+                while (new DateTime(reminder.StartDate, reminder.ScheduleTime) < now)
+                {
+                    AdvanceReminderDate(reminder);
+                }
+                reminderRepository.Update(reminder);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+        #endregion
+        #region Helpers
+        private List<DayOfWeek>? ParseCustomDays(string? customDaysString)
+        {
+            if (string.IsNullOrWhiteSpace(customDaysString))
+            {
+                return null;
+            }
+            return customDaysString.Split(',')
+                                   .Select(s => Enum.Parse<DayOfWeek>(s, true))
+                                   .ToList();
+        }
+        private void AdvanceReminderDate(MedicineReminder reminder)
+        {
+            switch (reminder.Frequency)
+            {
+                case RepeatType.Daily:
+                    reminder.StartDate = reminder.StartDate.AddDays(1);
+                    break;
+                case RepeatType.Weekly:
+                    reminder.StartDate = reminder.StartDate.AddDays(7);
+                    break;
+                case RepeatType.CustomDays:
+                    var customDays = ParseCustomDays(reminder.CustomDays);
+                    if (customDays == null || !customDays.Any())
+                    {
+                        return; // Cannot calculate next date, so skip.
+                    }
+
+                    var dayIndexes = customDays.Select(d => (int)d).OrderBy(i => i).ToList();
+                    var currentDayIndex = (int)reminder.StartDate.DayOfWeek;
+
+                    // Find the index of the next day in the schedule
+                    var nextDayIndex = dayIndexes.FirstOrDefault(i => i > currentDayIndex, -1);
+
+                    int daysToAdd;
+                    if (nextDayIndex == -1) // No later day in this week, so cycle to the first day of next week
+                    {
+                        nextDayIndex = dayIndexes.First();
+                        daysToAdd = (7 - currentDayIndex) + nextDayIndex;
+                    }
+                    else // Next day is in the same week
+                    {
+                        daysToAdd = nextDayIndex - currentDayIndex;
+                    }
+
+                    reminder.StartDate = reminder.StartDate.AddDays(daysToAdd);
+                    break;
+            }
+        }
+
+
+        #endregion
     }
 }

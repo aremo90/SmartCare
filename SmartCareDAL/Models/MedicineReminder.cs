@@ -1,24 +1,21 @@
 ﻿using SmartCareDAL.Models.Enum;
 using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartCareDAL.Models
 {
     public class MedicineReminder : BaseEntity
     {
-
         public int UserId { get; set; }
-        public string MedicationName { get; set; } = null!;
-        public int Dosage { get; set; }
-        public string Unit { get; set; } = null!; // e.g., mg, ml, 
-        public string MedicationType { get; set; } = null!; //pills / drops / syringe
-        public RepeatType Frequency { get; set; }
-        public string? CustomDays { get; set; } // Used if Frequency is CustomDays
-        public DateOnly StartDate { get; set; } // The calendar date for the reminder
-        public TimeOnly ScheduleTime { get; set; } // The specific time of day for the reminder
-        public bool IsTaken { get; set; }
+        public virtual User User { get; set; } = null!;
 
-        public User? User { get; set; }
+        public string MedicationName { get; set; } = string.Empty;
+        public int Dosage { get; set; }
+        public string Unit { get; set; } = string.Empty; // e.g., mg, ml
+        public string MedicationType { get; set; } = string.Empty; // e.g., pills, drops, syringe
+        public RepeatType Frequency { get; set; }
+        public string? CustomDays { get; set; } // Stored as comma-separated string e.g., "Monday,Tuesday"
+        public DateOnly StartDate { get; set; }
+        public TimeOnly ScheduleTime { get; set; }
+        public bool IsTaken { get; set; }
     }
 }

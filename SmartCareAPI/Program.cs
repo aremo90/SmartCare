@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using SmartCareBLL.Mapping;
 using SmartCareBLL.Services.Classes;
+using SmartCareBLL.Services.Hosted;
 using SmartCareBLL.Services.Interfaces;
 using SmartCareDAL.Data.Context;
 using SmartCareDAL.Repositories.Classes;
@@ -37,6 +38,7 @@ namespace SmartCareAPI
             builder.Services.AddScoped<IMedicineService, MedicineReminderService>();
             builder.Services.AddScoped<IGpsService, GpsService>();
             builder.Services.AddAutoMapper(X => X.AddProfile<AutoMapperProfile>());
+            builder.Services.AddHostedService<ReminderUpdateHostedService>();
 
 
             // ---------------------------

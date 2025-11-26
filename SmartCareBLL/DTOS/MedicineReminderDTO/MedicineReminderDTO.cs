@@ -13,6 +13,8 @@ namespace SmartCareBLL.DTOS.MedicineReminderDTOS
         public int Dosage { get; set; }
         public string Unit { get; set; } = null!; // e.g., mg, ml, pills
         public string MedicationType { get; set; } = null!;
+        public string Frequency { get; set; } = string.Empty;
+        public List<string>? CustomDays { get; set; }
         public DateOnly ScheduleDate { get; set; } 
         public TimeOnly ScheduleTime { get; set; } 
     }
