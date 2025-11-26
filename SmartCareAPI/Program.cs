@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using LinkO.Domin.Contract;
+using LinkO.Domin.Models.IdentityModule;
+using LinkO.Persistence.Data.Context;
+using LinkO.Persistence.IdentityData.DbContext;
+using LinkO.Persistence.Repository;
+using LinkO.ServiceAbstraction;
+using LinkO.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using SmartCareAPI.Hosted;
 using SmartCareBLL.Mapping;
-using SmartCareBLL.Services.Classes;
-using SmartCareBLL.Services.Hosted;
-using SmartCareBLL.Services.Interfaces;
-using SmartCareDAL.Data.Context;
-using SmartCareDAL.Repositories.Classes;
-using SmartCareDAL.Repositories.Interface;
 using System.Text;
 
 namespace SmartCareAPI
@@ -19,16 +20,18 @@ namespace SmartCareAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddControllers();
             // ---------------------------
-            // 1️⃣ Database Context
+            // 01 Database Context
             // ---------------------------
             builder.Services.AddDbContext<SmartCareDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // ---------------------------
-            // 2️⃣ Repositories & UnitOfWork
+            // 02 Repositories & UnitOfWork
             // ---------------------------
-            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
+            //builder.Services.AddScoped(IGenericRepository, GenericRepository);
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IUserService , UserService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -39,42 +42,18 @@ namespace SmartCareAPI
             builder.Services.AddScoped<IGpsService, GpsService>();
             builder.Services.AddAutoMapper(X => X.AddProfile<AutoMapperProfile>());
             builder.Services.AddHostedService<ReminderUpdateHostedService>();
-
-
-            // ---------------------------
-            // 3️⃣ Services
-            // ---------------------------
-            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<AuthService>(); // <<<<< JWT / Auth service
 
-            // ---------------------------
-            // 4️⃣ AutoMapper
-            // ---------------------------
-            builder.Services.AddAutoMapper(cfg => cfg.AddProfile(new AutoMapperProfile()));
-
-            // ---------------------------
-            // 5️⃣ JWT Authentication
-            // ---------------------------
-            builder.Services.AddAuthentication(options =>
+            builder.Services.AddDbContext<LinkOIdentityDbContext>(options =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                    ValidAudience = builder.Configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ClockSkew = TimeSpan.Zero
-                };
+                options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
+                // add-migration "IdentityTablesCreate" -OutputDir "IdentityData/Migrations" -Context "LinkOIdentityDbContext"
             });
+            builder.Services.AddIdentity<ApplicationUser, Microsoft.AspNetCore.Identity.IdentityRole>()
+                .AddEntityFrameworkStores<LinkOIdentityDbContext>();
+            // ---------------------------
+            // 03 JWT Authentication
+            // ---------------------------
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
@@ -88,28 +67,24 @@ namespace SmartCareAPI
             });
 
             builder.Services.AddAuthorization();
-            builder.Services.AddControllers();
 
-            builder.Services.AddScoped<IAuthService, AuthService>();
 
 
             // ---------------------------
-            // 6️⃣ Controllers & OpenAPI
+            // 04 Controllers & OpenAPI
             // ---------------------------
-            builder.Services.AddOpenApi();
 
             // ---------------------------
-            // 7️⃣ Build app
+            // 05 Build app
             // ---------------------------
             var app = builder.Build();
 
-            app.MapOpenApi();
 
 
             app.UseHttpsRedirection();
 
             // ---------------------------
-            // 8️⃣ Authentication & Authorization
+            // 06 Authentication & Authorization
             // ---------------------------
             app.UseCors("AllowFrontend");
             app.UseAuthentication();
@@ -117,7 +92,7 @@ namespace SmartCareAPI
 
 
             // ---------------------------
-            // 9️⃣ Map Controllers
+            // 07 Map Controllers
             // ---------------------------
             app.MapControllers();
 

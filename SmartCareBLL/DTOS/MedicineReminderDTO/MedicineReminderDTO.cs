@@ -15,7 +15,7 @@ namespace SmartCareBLL.DTOS.MedicineReminderDTOS
         public string MedicationType { get; set; } = null!;
         public string Frequency { get; set; } = string.Empty;
         public List<string>? CustomDays { get; set; }
-        public DateOnly ScheduleDate { get; set; } 
+        public DateOnly StartDate { get; set; } 
         public TimeOnly ScheduleTime { get; set; } 
     }
 }

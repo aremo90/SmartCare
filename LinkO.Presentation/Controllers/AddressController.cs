@@ -1,16 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using LinkO.ServiceAbstraction;
+using LinkO.Shared.DTOS.AddressDTOS;
+using LinkO.Shared.ViewModels.Common;
 using Microsoft.AspNetCore.Mvc;
-using SmartCareBLL.DTOS.AddressDTOS;
-using SmartCareBLL.Services.Interfaces;
-using SmartCareBLL.ViewModels.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SmartCareAPI.Controllers
+namespace LinkO.Presentation.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class AddressController : ControllerBase
     {
         private readonly IAddressService _addressService;
@@ -66,7 +65,7 @@ namespace SmartCareAPI.Controllers
         #region get address by UserId
 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetAllAddressesByUserId(int userId)
+        public async Task<IActionResult> GetAllAddressesByUserId(string userId)
         {
             try
             {

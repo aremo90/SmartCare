@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using LinkO.ServiceAbstraction;
+using LinkO.Shared.DTOS.GpsDTOS;
+using LinkO.Shared.ViewModels.Common;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SmartCareBLL.DTOS.GpsDTOS;
-using SmartCareBLL.Services.Interfaces;
-using SmartCareBLL.ViewModels.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SmartCareAPI.Controllers
+namespace LinkO.Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -43,7 +43,7 @@ namespace SmartCareAPI.Controllers
         }
 
         [HttpGet("{userId}")]
-        public async Task<IActionResult> GetGpsLocation(int userId)
+        public async Task<IActionResult> GetGpsLocation(string userId)
         {
             try
             {

@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="15.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+    <ProjectReference Include="..\LinkO.Shared\LinkO.Shared.csproj" />
   </ItemGroup>
 
 </Project>

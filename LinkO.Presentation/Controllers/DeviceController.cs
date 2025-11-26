@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using LinkO.ServiceAbstraction;
+using LinkO.Shared.DTOS.DeviceDTOS;
+using LinkO.Shared.ViewModels.Common;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SmartCareBLL.DTOS.DeviceDTOS;
-using SmartCareBLL.Services.Interfaces;
-using SmartCareBLL.DTOS.MedicineReminderDTOS;
-using SmartCareBLL.ViewModels.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SmartCareAPI.Controllers
+namespace LinkO.Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -26,7 +25,7 @@ namespace SmartCareAPI.Controllers
 
 
         [HttpGet("{userId}")]
-        public async Task<IActionResult> GetDeviceInfoByUserId(int userId)
+        public async Task<IActionResult> GetDeviceInfoByUserId(string userId)
         {
             var deviceInfo = await _deviceService.GetDeviceInfoByUserId(userId);
             if (deviceInfo == null)
@@ -37,7 +36,7 @@ namespace SmartCareAPI.Controllers
         }
 
         [HttpPost("register/{userId}")]
-        public async Task<IActionResult> RegisterDeviceForUser(int userId, [FromBody] CreateDeviceDTO createDeviceDTO)
+        public async Task<IActionResult> RegisterDeviceForUser(string userId, [FromBody] CreateDeviceDTO createDeviceDTO)
         {
             var registeredDevice = await _deviceService.RegisterDeviceForUser(userId, createDeviceDTO);
             return Ok(ApiResponse<DeviceDTO>.SuccessResponse(registeredDevice));

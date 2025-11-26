@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using LinkO.ServiceAbstraction;
+using LinkO.Shared.DTOS.UserDTOS;
+using LinkO.Shared.ViewModels.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SmartCareBLL.DTOS.UserDTOS;
-using SmartCareBLL.Services.Interfaces;
-using SmartCareBLL.ViewModels;
-using SmartCareBLL.ViewModels.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SmartCareAPI.Controllers
+namespace LinkO.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -33,19 +32,19 @@ namespace SmartCareAPI.Controllers
         #region Get user By Id
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(string id)
         {
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
                 return NotFound(ApiResponse<string>.FailResponse("User not found"));
-            return Ok(ApiResponse<UserDTO>.SuccessResponse(user, "User retrieved successfully"));
+            return Ok(user);
         }
         #endregion
 
         #region Update User Info
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UserToUpdateDTO model)
+        public async Task<IActionResult> Update(string id, [FromBody] UserToUpdateDTO model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<string>.FailResponse("Invalid data"));
@@ -69,7 +68,7 @@ namespace SmartCareAPI.Controllers
         #region Delete User
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(string id)
         {
             var result = await _userService.DeleteUserByIdAsync(id);
             if (result == null)
