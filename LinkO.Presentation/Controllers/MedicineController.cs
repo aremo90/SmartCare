@@ -2,6 +2,7 @@
 using LinkO.Shared.DTOS.AddressDTOS;
 using LinkO.Shared.DTOS.MedicineReminderDTOS;
 using LinkO.Shared.ViewModels.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -10,9 +11,7 @@ using System.Threading.Tasks;
 
 namespace LinkO.Presentation.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class MedicineController : ControllerBase
+    public class MedicineController : ApiBaseController
     {
         private readonly IMedicineService _medicineService;
 
@@ -21,70 +20,41 @@ namespace LinkO.Presentation.Controllers
             _medicineService = medicineService;
         }
 
-
-        [HttpGet("{userID}")]
-        public async Task<IActionResult> GetAllAddressesByUserId(string userId)
+        [Authorize]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<MedicineReminderDTO>>> GetAllRemindersByUserId()
         {
-            try
-            {
-                var Medicines = await _medicineService.GetReminderByUserId(userId);
-                return Ok(ApiResponse<IEnumerable<MedicineReminderDTO>>.SuccessResponse(Medicines));
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, ApiResponse<string>.FailResponse("An unexpected error occurred."));
-            }
+            var Medicines = await _medicineService.GetReminderByUserId(GetUserEmail());
+            return HandleResult<IEnumerable<MedicineReminderDTO>>(Medicines);
         }
 
         [HttpGet("esp/{deviceIdentifier}")]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<DeviceReminderDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<DeviceReminderDTO>>), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetRemindersByDevice(string deviceIdentifier)
+        //[ProducesResponseType(typeof(ApiResponse<IEnumerable<DeviceReminderDTO>>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse<IEnumerable<DeviceReminderDTO>>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<DeviceReminderDTO>>> GetRemindersByDevice(string deviceIdentifier)
         {
-            try
-            {
-                var reminders = await _medicineService.GetRemindersByDeviceIdentifierAsync(deviceIdentifier);
-
-                if (reminders == null)
-                {
-                    string errorMessage = $"Device with identifier '{deviceIdentifier}' not found.";
-                    return NotFound(ApiResponse<IEnumerable<DeviceReminderDTO>>.FailResponse(errorMessage));
-                }
-
-                return Ok(ApiResponse<IEnumerable<DeviceReminderDTO>>.SuccessResponse(reminders, "Success"));
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, ApiResponse<string>.FailResponse("An unexpected error occurred."));
-            }
+            var reminders = await _medicineService.GetRemindersByDeviceIdentifierAsync(deviceIdentifier);
+            return HandleResult<IEnumerable<DeviceReminderDTO>>(reminders);
+            //return Ok(ApiResponse<IEnumerable<DeviceReminderDTO>>.SuccessResponse(reminders, "Success"));
         }
 
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateReminder([FromBody] CreateMedicineReminderDTO model)
+        public async Task<ActionResult<MedicineReminderDTO>> CreateReminder([FromBody] CreateMedicineReminderDTO model)
         {
-            var createdReminderGroup = await _medicineService.CreateReminderAsync(model);
-            if (createdReminderGroup == null)
-            {
-                return BadRequest(ApiResponse<string>.FailResponse("Could not create reminder."));
-            }
-            return Ok(createdReminderGroup);
+            var createdReminder = await _medicineService.CreateReminderAsync(GetUserEmail() , model);
+            return HandleResult<MedicineReminderDTO>(createdReminder);
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReminder(int id)
         {
-            try
-            {
-                var result = await _medicineService.DeleteReminderAsync(id);
-                if (!result)
-                    return NotFound(ApiResponse<string>.FailResponse($"Reminder with ID {id} not found."));
-                
-                return Ok(ApiResponse<string>.SuccessResponse("Reminder deleted successfully."));
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, ApiResponse<string>.FailResponse("An unexpected error occurred while deleting the reminder."));
-            }
+            var result = await _medicineService.DeleteReminderAsync(id);
+            if (!result)
+                return NotFound(ApiResponse<string>.FailResponse($"Reminder with ID {id} not found."));
+            
+            return Ok(ApiResponse<string>.SuccessResponse("Reminder deleted successfully."));
         }
     }
 }

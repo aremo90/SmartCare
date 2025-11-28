@@ -1,16 +1,17 @@
 ﻿using LinkO.ServiceAbstraction;
 using LinkO.Shared.DTOS.AddressDTOS;
 using LinkO.Shared.ViewModels.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace LinkO.Presentation.Controllers
+namespace LinkO.Presentation.Controllers 
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AddressController : ControllerBase
+    public class AddressController : ApiBaseController
     {
         private readonly IAddressService _addressService;
 
@@ -20,119 +21,37 @@ namespace LinkO.Presentation.Controllers
         }
 
 
-        #region Get All Address
 
+        #region get User address
+        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAllAddresses()
+        public async Task<ActionResult<AddressDTO>> GetUserAddress()
         {
-            try
-            {
-                var addresses = await _addressService.GetAllAddressesAsync();
-                return Ok(ApiResponse<IEnumerable<AddressDTO>>.SuccessResponse(addresses));
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, ApiResponse<string>.FailResponse("An unexpected error occurred."));
-            }
+            var Result = await _addressService.GetAddressByUserAsync(GetUserEmail());
+            return HandleResult<AddressDTO>(Result);
         }
-
-
-
-        #endregion
-        #region get address by AddressId
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAddressById(int id)
-        {
-            try
-            {
-                var address = await _addressService.GetAddressByIdAsync(id);
-                if (address == null)
-                {
-                    return NotFound(ApiResponse<AddressDTO>.FailResponse($"Address with ID {id} not found."));
-                }
-                return Ok(ApiResponse<AddressDTO>.SuccessResponse(address));
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, ApiResponse<string>.FailResponse("An unexpected error occurred."));
-            }
-        }
-
-
         #endregion
 
-        #region get address by UserId
-
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetAllAddressesByUserId(string userId)
-        {
-            try
-            {
-                var addresses = await _addressService.GetAllAddressesByUserIdAsync(userId);
-                return Ok(ApiResponse<IEnumerable<AddressDTO>>.SuccessResponse(addresses));
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, ApiResponse<string>.FailResponse("An unexpected error occurred."));
-            }
-        }
-
-        #endregion
 
         #region create New Address
-
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateAddress([FromBody] CreateAddressDTO createAddressDTO)
+        public async Task<ActionResult<AddressDTO>> CreateAddress([FromBody] CreateAddressDTO createAddressDTO)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ApiResponse<string>.FailResponse("Invalid model state."));
-            }
-
-            try
-            {
-                var createdAddress = await _addressService.CreateAddressAsync(createAddressDTO);
-                if (createdAddress == null)
-                {
-                    return BadRequest(ApiResponse<AddressDTO>.FailResponse("Failed to create address."));
-                }
-                return CreatedAtAction(nameof(GetAddressById), new { id = createdAddress.Id }, ApiResponse<AddressDTO>.SuccessResponse(createdAddress));
-            }
-            catch (ApplicationException ex)
-            {
-                return BadRequest(ApiResponse<string>.FailResponse(ex.Message));
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, ApiResponse<string>.FailResponse("An unexpected error occurred while creating the address."));
-            }
+            var createdAddress = await _addressService.CreateAddressAsync(GetUserEmail(), createAddressDTO);
+            return HandleResult<AddressDTO>(createdAddress);
         }
-
-
         #endregion
 
 
         #region Delete Address
-
+        [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAddress(int id)
+        public async Task<ActionResult<AddressDTO>> DeleteAddress(int id)
         {
-            try
-            {
-                var result = await _addressService.DeleteAddressAsync(id);
-                if (!result)
-                {
-                    return NotFound(ApiResponse<string>.FailResponse($"Address with ID {id} not found."));
-                }
-                return Ok(ApiResponse<string>.SuccessResponse("Address deleted successfully."));
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, ApiResponse<string>.FailResponse("An unexpected error occurred while deleting the address."));
-            }
+            var result = await _addressService.DeleteAddressAsync(id);
+            return Ok(result);
         }
-
         #endregion
     }
 }

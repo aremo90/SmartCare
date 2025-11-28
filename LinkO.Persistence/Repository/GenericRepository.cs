@@ -1,7 +1,6 @@
 ﻿using LinkO.Domin.Contract;
 using LinkO.Domin.Models;
 using LinkO.Persistence.Data;
-using LinkO.Persistence.Data.Context;
 using LinkO.Persistence.IdentityData.DbContext;
 using Microsoft.EntityFrameworkCore;
 using System;

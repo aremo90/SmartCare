@@ -1,11 +1,16 @@
 ﻿using AutoMapper;
 using LinkO.Domin.Contract;
 using LinkO.Domin.Models;
+using LinkO.Domin.Models.IdentityModule;
+using LinkO.Service.Exceptions;
 using LinkO.ServiceAbstraction;
+using LinkO.Shared.CommonResult;
 using LinkO.Shared.DTOS.GpsDTOS;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,26 +20,26 @@ namespace LinkO.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public GpsService(IUnitOfWork unitOfWork , IMapper mapper)
+        public GpsService(IUnitOfWork unitOfWork , IMapper mapper , UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
 
-        public async Task<GpsDTO> GetGpsLocationAsync(string userId)
+        public async Task<Result<GpsDTO>> GetGpsLocationAsync(string Email)
         {
-            if (userId is null)
-            {
-                throw new ArgumentException("Invalid user ID.");
-            }
+            var User = await _userManager.FindByEmailAsync(Email);
+            if (User is null)
+                return Error.NotFound();
+
             var gpsLocations = await _unitOfWork.GetRepository<GpsLocation, int>().GetAllAsync();
-            var gpsLocation = gpsLocations.FirstOrDefault(g => g.UserId == userId);
+            var gpsLocation = gpsLocations.FirstOrDefault(g => g.UserId == User.Id);
             if (gpsLocation == null)
-            {
-                throw new KeyNotFoundException("GPS location not found for the specified user ID.");
-            }
+                return Error.NotFound();
             return _mapper.Map<GpsDTO>(gpsLocation);
         }
 
@@ -70,7 +75,8 @@ namespace LinkO.Services
                 {
                     UserId = device.UserId,
                     Latitude = gpsUpdateDTO.Latitude,
-                    Longitude = gpsUpdateDTO.Longitude
+                    Longitude = gpsUpdateDTO.Longitude,
+                    CreatedAt = DateTime.Now
                 };
                 await _unitOfWork.GetRepository<GpsLocation, int>().AddAsync(gpsLocation);
             }
@@ -78,6 +84,7 @@ namespace LinkO.Services
             {
                 gpsLocation.Latitude = gpsUpdateDTO.Latitude;
                 gpsLocation.Longitude = gpsUpdateDTO.Longitude;
+                gpsLocation.UpdatedAt = DateTime.Now;
                 _unitOfWork.GetRepository<GpsLocation, int>().Update(gpsLocation);
             }
             await _unitOfWork.SaveChangesAsync();

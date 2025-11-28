@@ -1,8 +1,15 @@
 ﻿using AutoMapper;
 using LinkO.Domin.Contract;
 using LinkO.Domin.Models;
+using LinkO.Domin.Models.Enum;
+using LinkO.Domin.Models.IdentityModule;
+using LinkO.Service.Exceptions;
 using LinkO.ServiceAbstraction;
+using LinkO.Shared.CommonResult;
 using LinkO.Shared.DTOS.AddressDTOS;
+using LinkO.Shared.DTOS.AuthDTOS;
+using LinkO.Shared.DTOS.EnumDTOS;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,31 +22,44 @@ namespace LinkO.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AddressService(IUnitOfWork unitOfWork , IMapper mapper)
+        public AddressService(IUnitOfWork unitOfWork , IMapper mapper , UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
 
-        public async Task<AddressDTO> CreateAddressAsync(CreateAddressDTO createAddressDTO)
+        public async Task<Result<AddressDTO>> CreateAddressAsync(string Email , CreateAddressDTO createAddressDTO)
         {
-            var addressEntity = _mapper.Map<Address>(createAddressDTO);
-            await _unitOfWork.GetRepository<Address, int>().AddAsync(addressEntity);
+            var User = await _userManager.FindByEmailAsync(Email);
+
+            if (User is null)
+                return Error.NotFound("Cannot Find User for this Email !");
+
+            var Address = new Address
+            {
+                UserId = User.Id,
+                Email = Email,
+                FullName = createAddressDTO.FullName,
+                PhoneNumber = createAddressDTO.PhoneNumber,
+                UserAddress = createAddressDTO.UserAddress,
+                PaymentMethod = Enum.Parse<PaymentMethod>(createAddressDTO.PaymentMethod.ToString())
+            };
+
+            await _unitOfWork.GetRepository<Address, int>().AddAsync(Address);
             await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<AddressDTO>(addressEntity);
+            return _mapper.Map<AddressDTO>(Address);
         }
 
         public async Task<bool> DeleteAddressAsync(int addressId)
         {
-            if (addressId <= 0)
-                return false;
-
             var addressRepository = _unitOfWork.GetRepository<Address, int>();
             var address = await addressRepository.GetByIdAsync(addressId);
 
-            if (address == null)
+            if (address is null)
                 return false;
 
             addressRepository.Delete(address);
@@ -47,32 +67,15 @@ namespace LinkO.Services
             return true;
         }
 
-        public async Task<AddressDTO> GetAddressByIdAsync(int addressId)
+        public async Task<Result<AddressDTO>> GetAddressByUserAsync(string Email)
         {
-            if (addressId <= 0)
-                throw new ArgumentException("Invalid address ID.");
-
-            var address = await _unitOfWork.GetRepository<Address, int>().GetByIdAsync(addressId);
-            return _mapper.Map<AddressDTO>(address);
+            var User = await _userManager.FindByEmailAsync(Email);
+            var AddressRepository = _unitOfWork.GetRepository<Address, int>();
+            var Address = (await AddressRepository.GetAllAsync()).FirstOrDefault(d => d.UserId == User.Id);
+            if (Address is null)
+                return Error.NotFound("Not Found" , "No Address Found");
+            return _mapper.Map<AddressDTO>(Address);
         }
-
-        public async Task<IEnumerable<AddressDTO>> GetAllAddressesAsync()
-        {
-            var address = await _unitOfWork.GetRepository<Address, int>().GetAllAsync();
-            return _mapper.Map<IEnumerable<AddressDTO>>(address);
-        }
-        public async Task<IEnumerable<AddressDTO>> GetAllAddressesByUserIdAsync(string userId)
-        {
-            if (userId is null)
-                throw new ArgumentException("Invalid user ID.");
-
-            var addressRepository = _unitOfWork.GetRepository<Address, int>();
-            var allAddresses = await addressRepository.GetAllAsync();
-            var userAddresses = allAddresses.Where(a => a.UserId == userId);
-
-            return _mapper.Map<IEnumerable<AddressDTO>>(userAddresses);
-        }
-
 
     }
 }

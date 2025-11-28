@@ -1,4 +1,5 @@
-﻿using LinkO.Shared.DTOS.DeviceDTOS;
+﻿using LinkO.Shared.CommonResult;
+using LinkO.Shared.DTOS.DeviceDTOS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace LinkO.ServiceAbstraction
 {
     public interface IDeviceService
     {
-        Task<DeviceDTO> GetDeviceInfoByUserId(string userId);
-        Task<DeviceDTO> RegisterDeviceForUser(string userId, CreateDeviceDTO createDeviceDTO);
+        Task<Result<DeviceDTO>> GetDeviceInfoByUserId(string Email);
+        Task<Result<DeviceDTO>> RegisterDeviceForUser(string Email, CreateDeviceDTO createDeviceDTO);
     }
 }

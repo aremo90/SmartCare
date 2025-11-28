@@ -17,4 +17,9 @@
     <ProjectReference Include="..\LinkO.Service\LinkO.Service.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Context\" />
+    <Folder Include="Data\Migrations\" />
+  </ItemGroup>
+
 </Project>

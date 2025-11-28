@@ -1,4 +1,5 @@
-﻿using LinkO.Domin.Models.IdentityModule;
+﻿using LinkO.Domin.Models.Enum;
+using LinkO.Domin.Models.IdentityModule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,11 @@ namespace LinkO.Domin.Models
     public class Address : BaseEntity
     {
         public string UserId { get; set; } = default!;
-        public int BuildingNumber { get; set; }
-        public string Street { get; set; } = default!;
-        public string City { get; set; } = default!;
-        public int ZipCode { get; set; }
+        public string FullName { get; set; } = default!;
+        public string Email { get; set; } = default!;
+        public string PhoneNumber { get; set; } = default!;
+        public string UserAddress { get; set; } = default!;
+        public PaymentMethod PaymentMethod { get; set; }
 
         // Navigation property
         public ApplicationUser? User { get; set; } = default!;

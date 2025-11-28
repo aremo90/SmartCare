@@ -1,13 +1,16 @@
 ﻿using LinkO.Domin.Contract;
 using LinkO.Domin.Models.IdentityModule;
-using LinkO.Persistence.Data.Context;
 using LinkO.Persistence.IdentityData.DbContext;
 using LinkO.Persistence.Repository;
 using LinkO.ServiceAbstraction;
 using LinkO.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using SmartCareAPI.CustomMiddleWares;
+using SmartCareAPI.Factories;
 using SmartCareAPI.Hosted;
 using SmartCareBLL.Mapping;
 using System.Text;
@@ -21,39 +24,47 @@ namespace SmartCareAPI
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
-            // ---------------------------
-            // 01 Database Context
-            // ---------------------------
-            builder.Services.AddDbContext<SmartCareDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // ---------------------------
-            // 02 Repositories & UnitOfWork
-            // ---------------------------
-            builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
-            //builder.Services.AddScoped(IGenericRepository, GenericRepository);
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped<IUserService , UserService>();
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<IAddressService, AddressService>();
-            builder.Services.AddScoped<IDeviceService, DeviceService>();
-            builder.Services.AddScoped<IMedicineService, MedicineReminderService>();
-            builder.Services.AddScoped<IGpsService, GpsService>();
-            builder.Services.AddAutoMapper(X => X.AddProfile<AutoMapperProfile>());
-            builder.Services.AddHostedService<ReminderUpdateHostedService>();
-            builder.Services.AddScoped<AuthService>(); // <<<<< JWT / Auth service
+            #region Registers
 
             builder.Services.AddDbContext<LinkOIdentityDbContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
                 // add-migration "IdentityTablesCreate" -OutputDir "IdentityData/Migrations" -Context "LinkOIdentityDbContext"
             });
-            builder.Services.AddIdentity<ApplicationUser, Microsoft.AspNetCore.Identity.IdentityRole>()
-                .AddEntityFrameworkStores<LinkOIdentityDbContext>();
-            // ---------------------------
-            // 03 JWT Authentication
-            // ---------------------------
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<LinkOIdentityDbContext>();
+            builder.Services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // Auth
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // UnAuth
+            }).AddJwtBearer(opt =>
+            {
+                opt.SaveToken = true;
+                opt.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = builder.Configuration["JWTOptions:Issuer"],
+                    ValidAudience = builder.Configuration["JWTOptions:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["JWTOptions:secretKey"]!))
+                };
+            });
+
+            builder.Services.AddAutoMapper(X => X.AddProfile<AutoMapperProfile>());
+            builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IAddressService, AddressService>();
+            builder.Services.AddScoped<IDeviceService, DeviceService>();
+            builder.Services.AddScoped<IMedicineService, MedicineReminderService>();
+            builder.Services.AddScoped<IGpsService, GpsService>();
+            builder.Services.Configure<ApiBehaviorOptions>(opt =>
+            {
+                opt.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
+            });
+            builder.Services.AddHostedService<ReminderUpdateHostedService>();
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
@@ -65,35 +76,23 @@ namespace SmartCareAPI
                         .AllowCredentials();
                 });
             });
+            #endregion
 
-            builder.Services.AddAuthorization();
-
-
-
-            // ---------------------------
-            // 04 Controllers & OpenAPI
-            // ---------------------------
-
-            // ---------------------------
-            // 05 Build app
-            // ---------------------------
             var app = builder.Build();
 
+            #region Exceptions
 
+            app.UseMiddleware<ExceptionHandlerMiddleWare>();
+
+            #endregion
 
             app.UseHttpsRedirection();
 
-            // ---------------------------
-            // 06 Authentication & Authorization
-            // ---------------------------
             app.UseCors("AllowFrontend");
             app.UseAuthentication();
             app.UseAuthorization();
 
 
-            // ---------------------------
-            // 07 Map Controllers
-            // ---------------------------
             app.MapControllers();
 
             app.Run();

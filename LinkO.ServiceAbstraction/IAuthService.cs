@@ -1,4 +1,5 @@
-﻿using LinkO.Shared.DTOS.AuthDTOS;
+﻿using LinkO.Shared.CommonResult;
+using LinkO.Shared.DTOS.AuthDTOS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,9 @@ namespace LinkO.ServiceAbstraction
 {
     public interface IAuthService
     {
-        Task<UserDTO> LoginAsync(LoginDTO loginDTO);
-        Task<UserDTO> RegisterAsync(RegisterDTO registerDTO);
+        Task<Result<UserDTO>> LoginAsync(LoginDTO loginDTO);
+        Task<Result<UserDTO>> RegisterAsync(RegisterDTO registerDTO);
+        Task<bool> CheckEmailAsync(string email);
+        Task<Result<UserInfoDTO>> GetUserByEmailAsync(string email);
     }
 }

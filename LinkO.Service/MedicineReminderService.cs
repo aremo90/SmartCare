@@ -2,9 +2,13 @@
 using LinkO.Domin.Contract;
 using LinkO.Domin.Models;
 using LinkO.Domin.Models.Enum;
+using LinkO.Domin.Models.IdentityModule;
+using LinkO.Service.Exceptions;
 using LinkO.ServiceAbstraction;
+using LinkO.Shared.CommonResult;
 using LinkO.Shared.DTOS.AddressDTOS;
 using LinkO.Shared.DTOS.MedicineReminderDTOS;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -19,88 +23,85 @@ namespace LinkO.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public MedicineReminderService(IUnitOfWork unitOfWork , IMapper mapper , ILogger<MedicineReminder> logger)
+        public MedicineReminderService(IUnitOfWork unitOfWork , IMapper mapper , ILogger<MedicineReminder> logger , UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _userManager = userManager;
         }
 
-        public async Task<MedicineReminderDTO> CreateReminderAsync(CreateMedicineReminderDTO model)
+        public async Task<Result<MedicineReminderDTO>> CreateReminderAsync(string email,CreateMedicineReminderDTO model)
         {
+            var User = await _userManager.FindByEmailAsync(email);
+
+            if (User == null)
+                return Error.NotFound("User Not Found");
+
             if (model is null)
-            {
-                _logger.LogWarning("CreateReminderAsync called with a null model.");
-                throw new ArgumentNullException(nameof(model));
-            }
+                return Error.InvalidCredentials();
 
-            try
-            {
-                _logger.LogInformation("Creating a new medicine reminder for user {UserId}.", model.UserId);
+            var medicineEntity = _mapper.Map<MedicineReminder>(model);
+            medicineEntity.UserId = User.Id;
+            await _unitOfWork.GetRepository<MedicineReminder, int>().AddAsync(medicineEntity);
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<MedicineReminderDTO>(medicineEntity);
 
-                var medicineEntity = _mapper.Map<MedicineReminder>(model);
-                await _unitOfWork.GetRepository<MedicineReminder, int>().AddAsync(medicineEntity);
-                await _unitOfWork.SaveChangesAsync();
-
-                _logger.LogInformation("Successfully created medicine reminder with ID {ReminderId} for user {UserId}.", medicineEntity.Id, model.UserId);
-
-                return _mapper.Map<MedicineReminderDTO>(medicineEntity);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while creating a medicine reminder for user {UserId}.", model.UserId);
-                throw; // Re-throwing the exception preserves the stack trace and allows higher-level handlers to process it.
-            }
         }
 
         public async Task<bool> DeleteReminderAsync(int id)
         {
-            if (id <= 0)
-                return false;
-
             var MedicineRepository = _unitOfWork.GetRepository<MedicineReminder, int>();
             var Medicine = await MedicineRepository.GetByIdAsync(id);
 
             if (Medicine == null)
-                return false;
+                throw new MedicineNotFoundException(id);
 
             MedicineRepository.Delete(Medicine);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
-        public async Task<IEnumerable<MedicineReminderDTO>> GetReminderByUserId(string userId)
+        public async Task<Result<IEnumerable<MedicineReminderDTO>>> GetReminderByUserId(string email)
         {
-            if (userId is null)
-                throw new ArgumentException("Invalid user ID.");
+            var User = await _userManager.FindByEmailAsync(email);
+            if (User == null)
+                return Result<IEnumerable<MedicineReminderDTO>>.Fail(Error.NotFound("User Not found"));
 
             var MedicineRepository = _unitOfWork.GetRepository<MedicineReminder, int>();
             var AllMedicine = await MedicineRepository.GetAllAsync();
-            var UserMedicines = AllMedicine.Where(a => a.UserId == userId);
+            var UserMedicines = AllMedicine.Where(a => a.UserId == User.Id);
 
-            return _mapper.Map<IEnumerable<MedicineReminderDTO>>(UserMedicines);
+            var userMedicinesDto = _mapper.Map<IEnumerable<MedicineReminderDTO>>(UserMedicines);
+            return Result<IEnumerable<MedicineReminderDTO>>.Ok(userMedicinesDto);
         }
 
 
-        public async Task<IEnumerable<DeviceReminderDTO>> GetRemindersByDeviceIdentifierAsync(string deviceIdentifier)
+        public async Task<Result<IEnumerable<DeviceReminderDTO>>> GetRemindersByDeviceIdentifierAsync(string deviceIdentifier)
         {
-            if (deviceIdentifier is null)
-                throw new ArgumentException("Invalid device identifier.");
             var deviceRepository = _unitOfWork.GetRepository<Device, int>();
-            var allDevices =  await deviceRepository.GetAllAsync();
+            var allDevices = await deviceRepository.GetAllAsync();
             var device = allDevices.FirstOrDefault(d => d.DeviceIdentifier == deviceIdentifier);
-            var UserId = device?.UserId;
+
+            if (device is null)
+                return Result<IEnumerable<DeviceReminderDTO>>.Fail(Error.NotFound("Device not found."));
+
+            var UserId = device.UserId;
             if (UserId is null)
-                throw new ArgumentException("Invalid device identifier.");
+                return Result<IEnumerable<DeviceReminderDTO>>.Fail(Error.NotFound("No User Paired With This Device"));
 
 
             var MedicineRepository = _unitOfWork.GetRepository<MedicineReminder, int>();
             var AllMedicine = await MedicineRepository.GetAllAsync();
             var UserMedicines = AllMedicine.Where(a => a.UserId == UserId);
-            return _mapper.Map<IEnumerable<DeviceReminderDTO>>(UserMedicines);
-        }
+            if (!UserMedicines.Any())
+                return Result<IEnumerable<DeviceReminderDTO>>.Fail(Error.NotFound("You Dont Have Any Reminders Right Now"));
 
+            var deviceRemindersDto = _mapper.Map<IEnumerable<DeviceReminderDTO>>(UserMedicines);
+            return Result<IEnumerable<DeviceReminderDTO>>.Ok(deviceRemindersDto);
+        }
         public async Task UpdateNextReminderDateAsync(int reminderId)
         {
             var reminderRepository = _unitOfWork.GetRepository<MedicineReminder , int>();

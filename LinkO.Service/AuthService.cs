@@ -1,43 +1,58 @@
-﻿using LinkO.Domin.Contract;
-using LinkO.Domin.Models;
-using LinkO.Domin.Models.Enum;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using LinkO.Domin.Models.IdentityModule;
 using LinkO.ServiceAbstraction;
 using LinkO.Shared.DTOS.AuthDTOS;
-using LinkO.Shared.DTOS.EnumDTOS;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Configuration;
+using LinkO.Domin.Models.Enum;
+using LinkO.Shared.CommonResult;
 
 namespace LinkO.Services
 {
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(UserManager<ApplicationUser> userManager)
+        public AuthService(UserManager<ApplicationUser> userManager , IConfiguration configuration)
         {
            _userManager = userManager;
+           _configuration = configuration;
         }
 
-        public async Task<UserDTO> LoginAsync(LoginDTO loginDTO)
+        public async Task<bool> CheckEmailAsync(string email)
+        {
+            var User = await _userManager.FindByEmailAsync(email);
+            return User != null;
+        }
+
+        public async Task<Result<UserInfoDTO>> GetUserByEmailAsync(string email)
+        {
+            var User = await _userManager.FindByEmailAsync(email);
+            if (User == null)
+                return Error.NotFound("User Info Not Found");
+            return new UserInfoDTO(User.FirstName , User.LastName , User.Email! , User.Gender.ToString() , User.DateOfBirth , User.PhoneNumber!);
+        }
+
+        public async Task<Result<UserDTO>> LoginAsync(LoginDTO loginDTO)
         {
             var User = await _userManager.FindByEmailAsync(loginDTO.Email);
             if (User == null)
-                throw new Exception("Invalid Email or Password");
+                return Error.InvalidCredentials("Invalid Email or Password");
             var isPasswordValid = await _userManager.CheckPasswordAsync(User, loginDTO.Password);
             if (!isPasswordValid)
-                throw new Exception("Invalid Email or Password");
-            return new UserDTO(User.Email! , User.FirstName, "Token");
+                return Error.InvalidCredentials("Invalid Email or Password");
+      
+            var Token = await GenrateTokenAsync(User);
+            return new UserDTO(User.Email! , User.FirstName, Token);
 
         }
 
-        public async Task<UserDTO> RegisterAsync(RegisterDTO registerDTO)
+        public async Task<Result<UserDTO>> RegisterAsync(RegisterDTO registerDTO)
         {
             var User = new ApplicationUser
             {
@@ -47,18 +62,58 @@ namespace LinkO.Services
                 Gender = Enum.Parse<Gender>(registerDTO.Gender, true),
                 DateOfBirth = registerDTO.DateOfBirth,
                 PhoneNumber = registerDTO.PhoneNumber,
-                UserName = "Hamza"
+                UserName = "LinkOUser"
             };
             var IdentityResult  =  await _userManager.CreateAsync(User, registerDTO.Password);
-            if (!IdentityResult.Succeeded)
+            if (IdentityResult.Succeeded)
             {
-                var errors = string.Join(", ", IdentityResult.Errors.Select(e => e.Description));
-                // It's better to throw a more specific exception, like an ArgumentException or a custom one.
-                throw new Exception($"User registration failed: {errors}");
+                var Token = await GenrateTokenAsync(User);
+                return new UserDTO(User.Email!, User.FirstName, Token);
             }
-
-            return new UserDTO(User.Email!, User.FirstName, "Token");
+            return IdentityResult.Errors.Select(E => Error.Validation(E.Code , E.Description)).ToList();
 
         }
+
+        #region JWT Token
+
+        private async Task<string> GenrateTokenAsync(ApplicationUser User) 
+        {
+            // Claims
+
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Name, User.FirstName!),
+                new Claim(JwtRegisteredClaimNames.Email, User.Email!),
+            };
+
+            // Roles [Admin]
+
+            var Roles = await _userManager.GetRolesAsync(User);
+            foreach (var role in Roles)
+            {
+                claims.Add(new Claim("roles", role));
+            }
+
+
+            // Secret Key
+            var secretKey = _configuration["JWTOptions:secretKey"]; 
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!));
+
+            // Signing Credentials
+            var Cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            // create Token
+            var Token = new JwtSecurityToken(
+                issuer      : _configuration["JWTOptions:Issuer"],
+                audience    : _configuration["JWTOptions:Audience"],
+                expires     : DateTime.Now.AddHours(2),
+                claims      : claims,
+                signingCredentials : Cred
+                );
+
+            return new JwtSecurityTokenHandler().WriteToken(Token);
+        }
+
+        #endregion
     }
 }

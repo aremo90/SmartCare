@@ -25,6 +25,5 @@ namespace LinkO.Domin.Models
         public DateTime? ExecutedAt { get; set; }
 
         // Relationship
-        public User? User { get; set; }
     }
 }

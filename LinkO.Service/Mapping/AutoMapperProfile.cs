@@ -4,7 +4,6 @@ using LinkO.Shared.DTOS.AddressDTOS;
 using LinkO.Shared.DTOS.DeviceDTOS;
 using LinkO.Shared.DTOS.GpsDTOS;
 using LinkO.Shared.DTOS.MedicineReminderDTOS;
-using LinkO.Shared.DTOS.UserDTOS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,26 +15,27 @@ namespace SmartCareBLL.Mapping
 
         public AutoMapperProfile()
         {
-            CreateMap<User, UserDTO>();    
 
             CreateMap<Address, AddressDTO>();
             CreateMap<CreateAddressDTO, Address>().ReverseMap();
 
-            CreateMap<Device,DeviceDTO>();
+            CreateMap<Device, DeviceDTO>();
             CreateMap<CreateDeviceDTO, Device>().ReverseMap();
 
             // Medicine Reminder Mappings
-            CreateMap<MedicineReminder, MedicineReminderDTO>();
+            CreateMap<MedicineReminder, MedicineReminderDTO>().ReverseMap();
 
 
             CreateMap<CreateMedicineReminderDTO, MedicineReminder>()
-                .ForMember(dest => dest.Frequency, opt => opt.MapFrom(src => src.Frequency))
                 .ForMember(dest => dest.CustomDays, opt => opt.MapFrom(src =>
                     src.CustomDays != null && src.CustomDays.Any()
                         ? string.Join(",", src.CustomDays)
                         : null));
 
-            CreateMap<MedicineReminder, DeviceReminderDTO>();
+            CreateMap<MedicineReminder, DeviceReminderDTO>()
+                .ForMember(dest => dest.ScheduleDate, opt => opt.MapFrom(src => src.StartDate))
+                .ReverseMap()
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.ScheduleDate));
 
             CreateMap<GpsLocation, GpsDTO>().ReverseMap();
         }

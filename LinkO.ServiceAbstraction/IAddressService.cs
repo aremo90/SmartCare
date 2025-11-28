@@ -1,4 +1,5 @@
-﻿using LinkO.Shared.DTOS.AddressDTOS;
+﻿using LinkO.Shared.CommonResult;
+using LinkO.Shared.DTOS.AddressDTOS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,8 @@ namespace LinkO.ServiceAbstraction
 {
     public interface IAddressService
     {
-        Task<IEnumerable<AddressDTO>> GetAllAddressesAsync();
-        Task<AddressDTO> GetAddressByIdAsync(int addressId);
-        Task<IEnumerable<AddressDTO>> GetAllAddressesByUserIdAsync(string userId);
-        Task<AddressDTO> CreateAddressAsync(CreateAddressDTO createAddressDTO);
+        Task<Result<AddressDTO>> GetAddressByUserAsync(string Email);
+        Task<Result<AddressDTO>> CreateAddressAsync(string Email , CreateAddressDTO createAddressDTO);
         Task<bool> DeleteAddressAsync(int addressId);
     }
 }

@@ -1,17 +1,12 @@
 ﻿using LinkO.ServiceAbstraction;
 using LinkO.Shared.DTOS.DeviceDTOS;
-using LinkO.Shared.ViewModels.Common;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace LinkO.Presentation.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class DeviceController : ControllerBase
+    public class DeviceController : ApiBaseController
     {
 
         private readonly IDeviceService _deviceService;
@@ -23,23 +18,20 @@ namespace LinkO.Presentation.Controllers
             _medicineService = medicineService;
         }
 
-
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetDeviceInfoByUserId(string userId)
+        [Authorize]
+        [HttpGet]
+        public async Task<ActionResult<DeviceDTO>> GetDeviceInfoByUserId()
         {
-            var deviceInfo = await _deviceService.GetDeviceInfoByUserId(userId);
-            if (deviceInfo == null)
-            {
-                return NotFound();
-            }
-            return Ok(ApiResponse<DeviceDTO>.SuccessResponse(deviceInfo));
+            var Result = await _deviceService.GetDeviceInfoByUserId(GetUserEmail());
+            return HandleResult<DeviceDTO>(Result);
         }
 
-        [HttpPost("register/{userId}")]
-        public async Task<IActionResult> RegisterDeviceForUser(string userId, [FromBody] CreateDeviceDTO createDeviceDTO)
+        [Authorize]
+        [HttpPost]
+        public async Task<ActionResult<DeviceDTO>> RegisterDeviceForUser([FromBody] CreateDeviceDTO createDeviceDTO)
         {
-            var registeredDevice = await _deviceService.RegisterDeviceForUser(userId, createDeviceDTO);
-            return Ok(ApiResponse<DeviceDTO>.SuccessResponse(registeredDevice));
+            var Result = await _deviceService.RegisterDeviceForUser(GetUserEmail(), createDeviceDTO);
+            return HandleResult<DeviceDTO>(Result);
         }
 
     }

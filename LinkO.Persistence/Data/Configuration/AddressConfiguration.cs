@@ -15,17 +15,12 @@ namespace LinkO.Persistence.Data.Configuration
         {
             builder.HasKey(a => a.Id);
 
-            builder.Property(a => a.BuildingNumber)
+            builder.Property(a => a.Email)
                 .IsRequired()
                 .HasMaxLength(50);
 
-            builder.Property(a => a.Street)
-                .IsRequired()
-                .HasMaxLength(150);
-
-            builder.Property(a => a.City)
-                .IsRequired()
-                .HasMaxLength(100);
+            builder.Property(a => a.UserAddress)
+                .HasColumnName("Address");
         }
     }
 }

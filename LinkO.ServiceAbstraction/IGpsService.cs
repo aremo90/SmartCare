@@ -1,4 +1,5 @@
-﻿using LinkO.Shared.DTOS.GpsDTOS;
+﻿using LinkO.Shared.CommonResult;
+using LinkO.Shared.DTOS.GpsDTOS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,6 @@ namespace LinkO.ServiceAbstraction
     public interface IGpsService
     {
         Task UpdateGpsLocationAsync(string deviceIdentifier, GpsUpdateDTO gpsUpdateDTO);
-        Task<GpsDTO> GetGpsLocationAsync(string userId);
+        Task<Result<GpsDTO>> GetGpsLocationAsync(string Email);
     }
 }

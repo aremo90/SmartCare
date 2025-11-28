@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LinkO.Shared.DTOS.AddressDTOS
+namespace LinkO.Domin.Models.Enum
 {
-    public class AddressDTO
+    public enum PaymentMethod
     {
-        public string UserAddress { get; set; } = default!;
+        cash = 1,
+        Visa = 2
     }
 }
