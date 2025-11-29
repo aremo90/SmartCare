@@ -23,8 +23,14 @@ namespace LinkO.Persistence.IdentityData.DbContext
         {
             base.OnModelCreating(builder);
             builder.Entity<ApplicationUser>().ToTable("Users");
+            builder.Entity<ApplicationUser>().
+                Property(x => x.UserName)
+                .IsRequired();
+
+
             builder.Entity<IdentityRole>().ToTable("Roles");
             builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
+
             builder.Entity<Address>().ToTable("Addresses");
             builder.Entity<Device>().ToTable("Devices");
             builder.Entity<GpsLocation>().ToTable("GpsLocations");

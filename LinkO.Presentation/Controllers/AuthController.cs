@@ -47,5 +47,13 @@ namespace LinkO.Presentation.Controllers
             return HandleResult<UserInfoDTO>(Result);
         }
 
+        [Authorize]
+        [HttpPost("updateUser")]
+        public async Task<ActionResult<UserInfoDTO>> UpdateProfilePicture([FromBody] UpdateUserInfo updateUserInfo)
+        {
+            var result = await _authService.UpdateUserProfile(GetUserEmail() , updateUserInfo);
+            return HandleResult<UserInfoDTO>(result);
+        }
+
     }
 }

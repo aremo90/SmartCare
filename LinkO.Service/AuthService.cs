@@ -62,7 +62,7 @@ namespace LinkO.Services
                 Gender = Enum.Parse<Gender>(registerDTO.Gender, true),
                 DateOfBirth = registerDTO.DateOfBirth,
                 PhoneNumber = registerDTO.PhoneNumber,
-                UserName = "LinkOUser"
+                UserName = $"{registerDTO.FirstName}{registerDTO.LastName}{Guid.NewGuid().ToString("N")[..6]}"
             };
             var IdentityResult  =  await _userManager.CreateAsync(User, registerDTO.Password);
             if (IdentityResult.Succeeded)
@@ -73,6 +73,36 @@ namespace LinkO.Services
             return IdentityResult.Errors.Select(E => Error.Validation(E.Code , E.Description)).ToList();
 
         }
+
+
+
+        public async Task<Result<UserInfoDTO>> UpdateUserProfile(string email, UpdateUserInfo updateUserInfo)
+        {
+            var User = await _userManager.FindByEmailAsync(email);
+            if (User == null)
+                return Error.NotFound();
+
+            if (updateUserInfo is null)
+                return Error.InvalidCredentials();
+
+            if (updateUserInfo.PhoneNumber is not null)
+                User.PhoneNumber = updateUserInfo.PhoneNumber;
+            if (updateUserInfo.FirstName is not null)
+                User.FirstName = updateUserInfo.FirstName;
+            if (updateUserInfo.LastName is not null)
+                User.LastName = updateUserInfo.LastName;
+            if (updateUserInfo.DateOfBirth is not null)
+                User.DateOfBirth = (DateOnly)updateUserInfo.DateOfBirth;
+            if (updateUserInfo.PublicId is not null )
+                User.PublicId = updateUserInfo.PublicId;
+            if (updateUserInfo.ProfilePicture is not null)
+                User.ProfilePicture = updateUserInfo.ProfilePicture;
+
+            await _userManager.UpdateAsync(User);
+            return new UserInfoDTO(User.FirstName, User.LastName, User.Email!, User.Gender.ToString(), User.DateOfBirth, User.PhoneNumber!, User.PublicId, User.ProfilePicture);
+        }
+
+
 
         #region JWT Token
 

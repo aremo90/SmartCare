@@ -12,6 +12,8 @@ namespace LinkO.Domin.Models.IdentityModule
     {
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
+        public string? PublicId { get; set; }
+        public string? ProfilePicture { get; set; }
         public Gender Gender { get; set; }
         public DateOnly DateOfBirth { get; set; }
         public Address? Address { get; set; }

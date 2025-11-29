@@ -65,6 +65,7 @@ namespace SmartCareAPI
             });
             builder.Services.AddHostedService<ReminderUpdateHostedService>();
 
+            builder.Services.AddAuthorization();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
@@ -76,6 +77,7 @@ namespace SmartCareAPI
                         .AllowCredentials();
                 });
             });
+
             #endregion
 
             var app = builder.Build();

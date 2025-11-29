@@ -14,5 +14,6 @@ namespace LinkO.ServiceAbstraction
         Task<Result<UserDTO>> RegisterAsync(RegisterDTO registerDTO);
         Task<bool> CheckEmailAsync(string email);
         Task<Result<UserInfoDTO>> GetUserByEmailAsync(string email);
+        Task<Result<UserInfoDTO>> UpdateUserProfile(string email, UpdateUserInfo updateUserInfo);
     }
 }
