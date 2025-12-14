@@ -4,7 +4,7 @@ using System;
 
 namespace LinkO.Domin.Models
 {
-    public class MedicineReminder : BaseEntity
+    public class MedicineReminder : BaseEntity<int>
     {
 
         public string MedicationName { get; set; } = string.Empty;

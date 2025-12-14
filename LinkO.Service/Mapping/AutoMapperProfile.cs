@@ -4,6 +4,7 @@ using LinkO.Shared.DTOS.AddressDTOS;
 using LinkO.Shared.DTOS.DeviceDTOS;
 using LinkO.Shared.DTOS.GpsDTOS;
 using LinkO.Shared.DTOS.MedicineReminderDTOS;
+using LinkO.Shared.DTOS.ProductDTOS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,6 +39,11 @@ namespace SmartCareBLL.Mapping
                 .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.ScheduleDate));
 
             CreateMap<GpsLocation, GpsDTO>().ReverseMap();
+
+            CreateMap<Product , ProductDTO>()
+                .ForMember(dest => dest.ProductType , opt => opt.MapFrom(src => src.ProductType.Name));
+
+            CreateMap<TypeDTO , ProductType>().ReverseMap();
         }
 
     }

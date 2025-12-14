@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LinkO.Domin.Models
 {
-    public class GpsLocation : BaseEntity
+    public class GpsLocation : BaseEntity<int>
     {
         public double Latitude { get; set; }
         public double Longitude { get; set; }

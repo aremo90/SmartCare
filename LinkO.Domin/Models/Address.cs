@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LinkO.Domin.Models
 {
-    public class Address : BaseEntity
+    public class Address : BaseEntity<int>
     {
         public string UserId { get; set; } = default!;
         public string FullName { get; set; } = default!;

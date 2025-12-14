@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LinkO.Shared.DTOS.AddressDTOS
+namespace LinkO.Shared.DTOS.ProductDTOS
 {
-    public class AddressDTO
+    public class TypeDTO
     {
         public int Id { get; set; }
-        public string UserAddress { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 }

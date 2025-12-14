@@ -1,7 +1,9 @@
 ﻿using LinkO.Domin.Contract;
 using LinkO.Domin.Models.IdentityModule;
+using LinkO.Persistence.DataSeed;
 using LinkO.Persistence.IdentityData.DbContext;
 using LinkO.Persistence.Repository;
+using LinkO.Service;
 using LinkO.ServiceAbstraction;
 using LinkO.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SmartCareAPI.CustomMiddleWares;
+using SmartCareAPI.Extensions;
 using SmartCareAPI.Factories;
 using SmartCareAPI.Hosted;
 using SmartCareBLL.Mapping;
@@ -59,12 +62,13 @@ namespace SmartCareAPI
             builder.Services.AddScoped<IDeviceService, DeviceService>();
             builder.Services.AddScoped<IMedicineService, MedicineReminderService>();
             builder.Services.AddScoped<IGpsService, GpsService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.Configure<ApiBehaviorOptions>(opt =>
             {
                 opt.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
             });
             builder.Services.AddHostedService<ReminderUpdateHostedService>();
-
+            builder.Services.AddScoped<IDataInitilizer, DataInitilizer>();
             builder.Services.AddAuthorization();
             builder.Services.AddCors(options =>
             {
@@ -81,6 +85,15 @@ namespace SmartCareAPI
             #endregion
 
             var app = builder.Build();
+
+            #region DataSeed
+
+
+            await app.MigrateDbAsync();
+            await app.SeedDataAsync();
+
+            #endregion
+
 
             #region Exceptions
 

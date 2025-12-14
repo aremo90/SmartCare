@@ -20,7 +20,7 @@ namespace LinkO.Persistence.Repository
             _dbContext = dbContext;
         }
 
-        public IGenericRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : BaseEntity, new()
+        public IGenericRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : BaseEntity<TKey>, new()
         {
             var EntityType = typeof(TEntity);
             if (_repositories.TryGetValue(EntityType , out var repository))

@@ -31,7 +31,10 @@ namespace LinkO.Persistence.IdentityData.DbContext
             builder.Entity<IdentityRole>().ToTable("Roles");
             builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
 
-            builder.Entity<Address>().ToTable("Addresses");
+            builder.Entity<Address>().ToTable("Addresses")
+                .HasOne(r => r.User)
+                .WithMany(u => u.Address)
+                .HasForeignKey(r => r.UserId); ;
             builder.Entity<Device>().ToTable("Devices");
             builder.Entity<GpsLocation>().ToTable("GpsLocations");
             builder.Entity<MedicineReminder>()
@@ -40,7 +43,18 @@ namespace LinkO.Persistence.IdentityData.DbContext
                 .WithMany(u => u.MedicineReminders)
                 .HasForeignKey(r => r.UserId);
 
-        }
+            builder.Entity<Product>().Property(X => X.Name).HasMaxLength(100);
+            builder.Entity<Product>().Property(X => X.Description).HasMaxLength(500);
+            builder.Entity<Product>().Property(X => X.ImageUrl).HasMaxLength(200);
+            builder.Entity<Product>().Property(X => X.ImageAlt).HasMaxLength(200);
 
-    }
+            builder.Entity<Product>()
+                .HasOne(pt => pt.ProductType)
+                .WithMany()
+                .HasForeignKey(pt => pt.TypeId);
+
+        }
+        DbSet<Product> Products { get; set; }
+        DbSet<ProductType> ProductTypes { get; set; }
+        }
 }

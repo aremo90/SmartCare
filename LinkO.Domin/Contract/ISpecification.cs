@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace LinkO.Domin.Contract
 {
-    public interface ISpecification<TEntity> where TEntity : BaseEntity
+    public interface ISpecification<TEntity , Tkey> where TEntity : BaseEntity<Tkey>
     {
-        //public ICollection<Expression<Func<TEntity , object>>> IncludeExpression { get; }
-        //public Expression<Func<TEntity,bool>> WhereExpression { get; }
+        public ICollection<Expression<Func<TEntity, object>>> IncludeExpression { get; }
+        public Expression<Func<TEntity, bool>> WhereExpression { get; }
     }
 }

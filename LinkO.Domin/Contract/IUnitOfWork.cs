@@ -10,7 +10,7 @@ namespace LinkO.Domin.Contract
     public interface IUnitOfWork 
     {
         Task<int> SaveChangesAsync();
-        IGenericRepository<TEntity, Tkey > GetRepository<TEntity , Tkey>() where TEntity : BaseEntity, new();
+        IGenericRepository<TEntity, Tkey > GetRepository<TEntity , Tkey>() where TEntity : BaseEntity<Tkey>, new();
 
 
     }

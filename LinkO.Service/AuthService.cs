@@ -73,9 +73,6 @@ namespace LinkO.Services
             return IdentityResult.Errors.Select(E => Error.Validation(E.Code , E.Description)).ToList();
 
         }
-
-
-
         public async Task<Result<UserInfoDTO>> UpdateUserProfile(string email, UpdateUserInfo updateUserInfo)
         {
             var User = await _userManager.FindByEmailAsync(email);

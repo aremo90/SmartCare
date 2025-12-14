@@ -10,21 +10,20 @@ using System.Threading.Tasks;
 
 namespace Linko.Service.Specification
 {
-    public class Specification<TEntity> : ISpecification<TEntity> where TEntity : BaseEntity 
+    public class BaseSpecification<TEntity , Tkey> : ISpecification<TEntity,Tkey> where TEntity : BaseEntity<Tkey>
     {
-        //public ICollection<Expression<Func<TEntity, object>>> IncludeExpression { get; } = [];
+        public ICollection<Expression<Func<TEntity, object>>> IncludeExpression { get; } = [];
 
+        protected void AddInclude(Expression<Func<TEntity, object>> includeExp)
+        {
+            IncludeExpression.Add(includeExp);
+        }
 
-        //protected void AddInclude(Expression<Func<TEntity, object>> includeExp)
-        //{
-        //    IncludeExpression.Add(includeExp);
-        //}
-
-        //public Expression<Func<TEntity, bool>> WhereExpression { get; }
-        //public Specification(Expression<Func<TEntity, bool>> WhereExp)
-        //{
-        //    WhereExpression = WhereExp;
-        //}
+        public Expression<Func<TEntity, bool>> WhereExpression { get; }
+        public BaseSpecification(Expression<Func<TEntity, bool>> WhereExp)
+        {
+            WhereExpression = WhereExp;
+        }
 
     }
 }

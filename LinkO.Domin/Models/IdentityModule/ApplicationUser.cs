@@ -16,7 +16,7 @@ namespace LinkO.Domin.Models.IdentityModule
         public string? ProfilePicture { get; set; }
         public Gender Gender { get; set; }
         public DateOnly DateOfBirth { get; set; }
-        public Address? Address { get; set; }
+        public ICollection<Address>? Address { get; set; }
         public Device? Device { get; set; }
         public GpsLocation? GpsLocation { get; set; }
         public ICollection<MedicineReminder> MedicineReminders { get; set; } = new List<MedicineReminder>();

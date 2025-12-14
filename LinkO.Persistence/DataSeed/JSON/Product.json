@@ -1,0 +1,99 @@
+[
+  {
+    "Name": "SmartCare Bracelet ",
+    "Description": "Our flagship device. Monitors vital signs and tracks medication.",
+    "Price": 50.99,
+    "ImageUrl": "images.pexels.com/photos/1080745/pexels-photo-1080745.jpeg",
+    "ImageAlt": "Person wearing a SmartCare Bracelet outdoors.",
+    "TypeId" : 1
+  },
+  {
+    "Name": "SmartBracelet V2",
+    "Description": "Improved experience from the original bracelet, Includes location tracking.",
+    "Price": 65.00,
+    "ImageUrl": "images.pexels.com/photos/23475/pexels-photo.jpg",
+    "ImageAlt": "A hand wearing a black SmartBracelet V2.",
+    "TypeId" : 1
+    
+  },
+  {
+    "Name": "SmartBracelet V3",
+    "Description": "Includes location tracking, and (1 Year) guarantee.",
+    "Price": 79.99,
+    "ImageUrl": "images.pexels.com/photos/374755/pexels-photo-374755.jpeg",
+    "ImageAlt": "Lightweight fitness band.",
+    "TypeId" : 1
+  },
+  {
+    "Name": "SmartCare Bracelet Pro",
+    "Description": "The ultimate luxurious experience (Higher quality,More comfortable) .",
+    "Price": 129.99,
+    "ImageUrl": "images.pexels.com/photos/12893643/pexels-photo-12893643.jpeg",
+    "ImageAlt": "High-end performance tracker.",
+    "TypeId" : 1
+  },
+  {
+    "Name": "Comfort Strap ",
+    "Description": "High-quality, hypoallergenic silicone strap for maximum comfort and durability.",
+    "Price": 19.99,
+    "ImageUrl": "images.pexels.com/photos/437037/pexels-photo-437037.jpeg",
+    "ImageAlt": "Yellow and black replacement watch straps.",
+    "TypeId" : 2
+  },
+  {
+    "Name": "Leather Executive Strap",
+    "Description": "Premium Italian leather strap with a classic closure.",
+    "Price": 39.99,
+    "ImageUrl": "images.pexels.com/photos/2861929/pexels-photo-2861929.jpeg",
+    "ImageAlt": "Brown leather watch strap.",
+    "TypeId" : 2
+  },
+  {
+    "Name": "Sport Mesh Strap",
+    "Description": "Breathable, lightweight, and durable mesh .",
+    "Price": 24.99,
+    "ImageUrl": "images.pexels.com/photos/267394/pexels-photo-267394.jpeg",
+    "ImageAlt": "Black nylon mesh strap.",
+    "TypeId" : 2
+  },
+  {
+    "Name": "Classic Steel Link",
+    "Description": "Heavy-duty stainless steel link band for a traditional watch feel.",
+    "Price": 49.99,
+    "ImageUrl": "images.pexels.com/photos/2265487/pexels-photo-2265487.jpeg",
+    "ImageAlt": "Silver steel watch band.",
+    "TypeId" : 2
+  },
+  {
+    "Name": "Quick Charging Dock",
+    "Description": "Charge your SmartCare Bracelet up to 50% faster with this specialized magnetic dock.",
+    "Price": 34.99,
+    "ImageUrl": "m.media-amazon.com/images/I/515tvMYqjRL._SX385_.jpg",
+    "ImageAlt": "Smartwatch resting on a white wireless charging dock.",
+    "TypeId" : 3
+  },
+  {
+    "Name": "Portable Power Bank",
+    "Description": "5000mAh backup battery for on-the-go charging without an outlet.",
+    "Price": 45.00,
+    "ImageUrl": "images.pexels.com/photos/3921695/pexels-photo-3921695.jpeg",
+    "ImageAlt": "Small portable power bank.",
+    "TypeId" : 3
+  },
+  {
+    "Name": "USB-C Fast Cable",
+    "Description": "Braided 6ft cable providing maximum power flow for rapid charging.",
+    "Price": 15.99,
+    "ImageUrl": "images.pexels.com/photos/1334602/pexels-photo-1334602.jpeg",
+    "ImageAlt": "Braided charging cable.",
+    "TypeId" : 3
+  },
+  {
+    "Name": "Multi-Device Station",
+    "Description": "Charge your phone, watch, and earbuds simultaneously with one station.",
+    "Price": 79.99,
+    "ImageUrl": "images.pexels.com/photos/29356607/pexels-photo-29356607.jpeg",
+    "ImageAlt": "Multi-device charging station.",
+    "TypeId" : 3
+  }
+]

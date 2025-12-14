@@ -9,6 +9,7 @@ using LinkO.Shared.CommonResult;
 using LinkO.Shared.DTOS.AddressDTOS;
 using LinkO.Shared.DTOS.AuthDTOS;
 using LinkO.Shared.DTOS.EnumDTOS;
+using LinkO.Shared.DTOS.MedicineReminderDTOS;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -39,6 +40,18 @@ namespace LinkO.Services
             if (User is null)
                 return Error.NotFound("Cannot Find User for this Email !");
 
+            if (createAddressDTO.FullName == "")
+                return Error.InvalidCredentials($"FullName Cannot be Empty");
+
+            if (createAddressDTO.PhoneNumber == "")
+                return Error.InvalidCredentials($"PhoneNumber Cannot be Empty");
+
+            if (createAddressDTO.UserAddress == "")
+                return Error.InvalidCredentials($"UserAddress Cannot be Empty");
+
+            if (createAddressDTO.PaymentMethod == 0)
+                return Error.InvalidCredentials($"Please Select PaymentMethod ");
+
             var Address = new Address
             {
                 UserId = User.Id,
@@ -67,15 +80,17 @@ namespace LinkO.Services
             return true;
         }
 
-        public async Task<Result<AddressDTO>> GetAddressByUserAsync(string Email)
+        public async Task<Result<IEnumerable<AddressDTO>>> GetAddressByUserAsync(string Email)
         {
             var User = await _userManager.FindByEmailAsync(Email);
-            var AddressRepository = _unitOfWork.GetRepository<Address, int>();
-            var Address = (await AddressRepository.GetAllAsync()).FirstOrDefault(d => d.UserId == User.Id);
-            if (Address is null)
-                return Error.NotFound("Not Found" , "No Address Found");
-            return _mapper.Map<AddressDTO>(Address);
-        }
 
+            var AddressRepository = _unitOfWork.GetRepository<Address, int>();
+            var Address = await AddressRepository.GetAllAsync();
+            var UserAddress = Address.Where(d => d.UserId == User?.Id);
+            if (UserAddress is null)
+                return Error.NotFound("Not Found" , "No Address Found For this User");
+            var usrAddressDTO = _mapper.Map<IEnumerable<AddressDTO>>(UserAddress);
+            return Result<IEnumerable<AddressDTO>>.Ok(usrAddressDTO);
+        }
     }
 }

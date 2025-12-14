@@ -10,7 +10,7 @@ namespace LinkO.ServiceAbstraction
 {
     public interface IAddressService
     {
-        Task<Result<AddressDTO>> GetAddressByUserAsync(string Email);
+        Task<Result<IEnumerable<AddressDTO>>> GetAddressByUserAsync(string Email);
         Task<Result<AddressDTO>> CreateAddressAsync(string Email , CreateAddressDTO createAddressDTO);
         Task<bool> DeleteAddressAsync(int addressId);
     }

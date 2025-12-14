@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace LinkO.Domin.Contract
 {
-    public interface IGenericRepository<TEntity , Tkey> where TEntity : BaseEntity, new()
+    public interface IGenericRepository<TEntity , Tkey> where TEntity : BaseEntity<Tkey>
     {
         Task<IEnumerable<TEntity>> GetAllAsync();
-        //Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity> specification);
+        Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity , Tkey> specification);
         Task<TEntity?> GetByIdAsync(Tkey id);
-        //Task<TEntity?> GetByIdAsync(ISpecification<TEntity> specification);
+        Task<TEntity?> GetByIdAsync(ISpecification<TEntity , Tkey> specification);
         Task AddAsync(TEntity entity);
         void Update(TEntity entity);
         void Delete(TEntity entity);
