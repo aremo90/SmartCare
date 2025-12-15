@@ -4,6 +4,7 @@ using LinkO.Persistence.IdentityData.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LinkO.Persistence.IdentityData.Migrations
 {
     [DbContext(typeof(LinkOIdentityDbContext))]
-    partial class LinkOIdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251215095533_OrderAddressEditV3")]
+    partial class OrderAddressEditV3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

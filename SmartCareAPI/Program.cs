@@ -18,6 +18,7 @@ using SmartCareAPI.Hosted;
 using SmartCareBLL.Mapping;
 using StackExchange.Redis;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace SmartCareAPI
 {
@@ -76,6 +77,8 @@ namespace SmartCareAPI
             builder.Services.AddScoped<IDataInitilizer, DataInitilizer>();
             builder.Services.AddScoped<IBasketRepository, BasketRepository>();
             builder.Services.AddScoped<IBasketService, BasketService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
             builder.Services.AddAuthorization();
             builder.Services.AddCors(options =>
             {
@@ -88,7 +91,11 @@ namespace SmartCareAPI
                         .AllowCredentials();
                 });
             });
-
+            builder.Services.AddControllers()
+            .AddJsonOptions(opts =>
+            {
+                opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
             #endregion
 
             var app = builder.Build();

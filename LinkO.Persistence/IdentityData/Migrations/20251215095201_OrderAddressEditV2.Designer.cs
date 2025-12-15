@@ -4,6 +4,7 @@ using LinkO.Persistence.IdentityData.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LinkO.Persistence.IdentityData.Migrations
 {
     [DbContext(typeof(LinkOIdentityDbContext))]
-    partial class LinkOIdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251215095201_OrderAddressEditV2")]
+    partial class OrderAddressEditV2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -328,6 +331,9 @@ namespace LinkO.Persistence.IdentityData.Migrations
                     b.Property<string>("PaymentIntentId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("SubTotal")
                         .HasColumnType("decimal(8,2)");
 
@@ -638,9 +644,6 @@ namespace LinkO.Persistence.IdentityData.Migrations
                             b1.Property<string>("FullName")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
-
-                            b1.Property<int>("PaymentMethod")
-                                .HasColumnType("int");
 
                             b1.Property<string>("PhoneNumber")
                                 .IsRequired()

@@ -1,5 +1,6 @@
 ﻿using LinkO.Domin.Models;
 using LinkO.Domin.Models.IdentityModule;
+using LinkO.Domin.Models.OrderModule;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +53,12 @@ namespace LinkO.Persistence.IdentityData.DbContext
                 .HasOne(pt => pt.ProductType)
                 .WithMany()
                 .HasForeignKey(pt => pt.TypeId);
+
+            builder.Entity<Order>().Property(X => X.SubTotal).HasColumnType("decimal(8,2)");
+            builder.Entity<Order>().OwnsOne(X => X.Address);
+
+            builder.Entity<OrderItem>().OwnsOne(OI => OI.Product);
+
 
         }
         DbSet<Product> Products { get; set; }
