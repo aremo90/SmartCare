@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using LinkO.Domin.Models;
+using LinkO.Domin.Models.BasketModule;
 using LinkO.Shared.DTOS.AddressDTOS;
+using LinkO.Shared.DTOS.BasketDTOS;
 using LinkO.Shared.DTOS.DeviceDTOS;
 using LinkO.Shared.DTOS.GpsDTOS;
 using LinkO.Shared.DTOS.MedicineReminderDTOS;
@@ -44,6 +46,8 @@ namespace SmartCareBLL.Mapping
                 .ForMember(dest => dest.ProductType , opt => opt.MapFrom(src => src.ProductType.Name));
 
             CreateMap<TypeDTO , ProductType>().ReverseMap();
+            CreateMap<CustomerBasket, BasketDTO>().ReverseMap();
+            CreateMap<BasketItem, BasketItemDTO>().ReverseMap();
         }
 
     }

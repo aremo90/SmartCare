@@ -16,6 +16,7 @@ using SmartCareAPI.Extensions;
 using SmartCareAPI.Factories;
 using SmartCareAPI.Hosted;
 using SmartCareBLL.Mapping;
+using StackExchange.Redis;
 using System.Text;
 
 namespace SmartCareAPI
@@ -35,12 +36,17 @@ namespace SmartCareAPI
                 options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
                 // add-migration "IdentityTablesCreate" -OutputDir "IdentityData/Migrations" -Context "LinkOIdentityDbContext"
             });
+            builder.Services.AddSingleton<IConnectionMultiplexer>(o =>
+            {
+                return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection")!);
+            });
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<LinkOIdentityDbContext>();
             builder.Services.AddAuthentication(opt =>
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // Auth
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // UnAuth
-            }).AddJwtBearer(opt =>
+            }).
+            AddJwtBearer(opt =>
             {
                 opt.SaveToken = true;
                 opt.TokenValidationParameters = new TokenValidationParameters()
@@ -53,7 +59,6 @@ namespace SmartCareAPI
                         Encoding.UTF8.GetBytes(builder.Configuration["JWTOptions:secretKey"]!))
                 };
             });
-
             builder.Services.AddAutoMapper(X => X.AddProfile<AutoMapperProfile>());
             builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -69,6 +74,8 @@ namespace SmartCareAPI
             });
             builder.Services.AddHostedService<ReminderUpdateHostedService>();
             builder.Services.AddScoped<IDataInitilizer, DataInitilizer>();
+            builder.Services.AddScoped<IBasketRepository, BasketRepository>();
+            builder.Services.AddScoped<IBasketService, BasketService>();
             builder.Services.AddAuthorization();
             builder.Services.AddCors(options =>
             {
