@@ -120,12 +120,11 @@ namespace LinkO.Service
             var Orders = await _unitOfWork.GetRepository<Order, Guid>().GetAllAsync(Spec);
 
             if (Orders is null)
-                return Error.NotFound("Order Not found");
+                return Error.NotFound("User Did not make any orders yet !");
 
             var Data = _mapper.Map<IEnumerable<OrderToReturnDTO>>(Orders);
             return Result<IEnumerable<OrderToReturnDTO>>.Ok(Data);
         }
-
         public async Task<Result<IEnumerable<DeliveryMethodDTO>>> GetDeliveMethodsAsync()
         {
             var DeliveryMethod = await _unitOfWork.GetRepository<DeliveryMethod, int>().GetAllAsync();
@@ -142,6 +141,33 @@ namespace LinkO.Service
             if (Order is null)
                 return Error.NotFound("Order Not Found");
             return _mapper.Map<OrderToReturnDTO>(Order);
+        }
+
+        public async Task<Result<TotalOrdersDTO>> GetTotalOrderInfo()
+        {
+            var orderRepo = _unitOfWork.GetRepository<Order, Guid>();
+            var totalOrders = await orderRepo.GetAllAsync();
+            if (!totalOrders.Any())
+                return Error.NotFound("No Orders Found");
+
+            // Delivery methods loaded separately because repository GetAllAsync doesn't Include navigations
+            var deliveryRepo = _unitOfWork.GetRepository<DeliveryMethod, int>();
+            var deliveryMethods = await deliveryRepo.GetAllAsync();
+            var deliveryById = deliveryMethods.ToDictionary(d => d.Id, d => d.Price);
+
+            decimal totalPrice = totalOrders.Sum(o =>
+                o.SubTotal + (o.DeliveryMethod != null
+                    ? o.DeliveryMethod.Price
+                    : (deliveryById.ContainsKey(o.DeliveryMethodId) ? deliveryById[o.DeliveryMethodId] : 0m))
+            );
+
+            var dto = new TotalOrdersDTO
+            {
+                TotalOrdersCount = totalOrders.Count(),
+                TotalPrice = totalPrice
+            };
+
+            return Result<TotalOrdersDTO>.Ok(dto);
         }
     }
 }

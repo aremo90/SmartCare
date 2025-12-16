@@ -23,7 +23,14 @@ namespace SmartCareAPI.Extensions
         public static async Task<WebApplication> SeedDataAsync(this WebApplication app)
         {
             using var Scope = app.Services.CreateScope();
-            var DataInitilizerService =  Scope.ServiceProvider.GetRequiredService<IDataInitilizer>();
+            var DataInitilizerService =  Scope.ServiceProvider.GetRequiredKeyedService<IDataInitilizer>("Default");
+            await DataInitilizerService.InitilizeAsync();
+            return app;
+        }
+        public static async Task<WebApplication> SeedIdentityDataAsync(this WebApplication app)
+        {
+            using var Scope = app.Services.CreateScope();
+            var DataInitilizerService =  Scope.ServiceProvider.GetRequiredKeyedService<IDataInitilizer>("Identity");
             await DataInitilizerService.InitilizeAsync();
             return app;
         }

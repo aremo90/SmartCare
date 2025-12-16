@@ -1,6 +1,7 @@
 ﻿using LinkO.ServiceAbstraction;
 using LinkO.Shared.DTOS.MedicineReminderDTOS;
 using LinkO.Shared.DTOS.ProductDTOS;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,27 @@ namespace LinkO.Presentation.Controllers
         {
             var result = await productService.GetAllTypesAsync();
             return HandleResult<IEnumerable<TypeDTO>>(result);
+        }
+        [Authorize]
+        [HttpPut]
+        public async Task<ActionResult<ProductDTO>> UpdateProduct([FromBody] UpdateProductDTO updateProductDTO, [FromQuery] int id)
+        {
+            var result = await productService.UpdateProduct(id, GetUserEmail(), updateProductDTO);
+            return HandleResult<ProductDTO>(result);
+        }
+        [Authorize]
+        [HttpPost]
+        public async Task<ActionResult<ProductDTO>> AddProductAsync([FromBody] AddProductDTO addProductDTO)
+        {
+            var result = await productService.AddProductAsync(GetUserEmail(), addProductDTO);
+            return HandleResult<ProductDTO>(result);
+        }
+        [Authorize]
+        [HttpDelete]
+        public async Task<ActionResult<bool>> DeleteProductAsync([FromQuery]int id)
+        {
+            var result = await productService.DeleteProductAsync(id, GetUserEmail());
+            return HandleResult<bool>(result);
         }
     }
 }

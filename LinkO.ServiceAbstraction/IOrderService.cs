@@ -15,5 +15,6 @@ namespace LinkO.ServiceAbstraction
         Task<Result<IEnumerable<OrderToReturnDTO>>> GetAllOrdersAsync(string email);
         Task<Result<IEnumerable<DeliveryMethodDTO>>> GetDeliveMethodsAsync();
         Task<Result<OrderToReturnDTO>> GetOrderByIdAsync(Guid id, string Email);
+        Task<Result<TotalOrdersDTO>> GetTotalOrderInfo();
     }
 }

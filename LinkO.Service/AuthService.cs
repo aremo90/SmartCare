@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using LinkO.Domin.Models.Enum;
 using LinkO.Shared.CommonResult;
+using AutoMapper;
 
 namespace LinkO.Services
 {
@@ -17,11 +18,15 @@ namespace LinkO.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IMapper _mapper;
 
-        public AuthService(UserManager<ApplicationUser> userManager , IConfiguration configuration)
+        public AuthService(UserManager<ApplicationUser> userManager , IConfiguration configuration , RoleManager<IdentityRole> roleManager , IMapper mapper)
         {
            _userManager = userManager;
            _configuration = configuration;
+           _roleManager = roleManager;
+           _mapper = mapper;
         }
 
         public async Task<bool> CheckEmailAsync(string email)
@@ -29,6 +34,8 @@ namespace LinkO.Services
             var User = await _userManager.FindByEmailAsync(email);
             return User != null;
         }
+
+
 
         public async Task<Result<UserInfoDTO>> GetUserByEmailAsync(string email)
         {
@@ -43,12 +50,20 @@ namespace LinkO.Services
             var User = await _userManager.FindByEmailAsync(loginDTO.Email);
             if (User == null)
                 return Error.InvalidCredentials("Invalid Email or Password");
+
             var isPasswordValid = await _userManager.CheckPasswordAsync(User, loginDTO.Password);
             if (!isPasswordValid)
                 return Error.InvalidCredentials("Invalid Email or Password");
       
+            //var Role = "User";
+            //if (await _userManager.IsInRoleAsync(User, "Admin"))
+            //    Role = "Admin";
+            var Roles = await _userManager.GetRolesAsync(User);
+            var Role = Roles.FirstOrDefault() ?? "User";
+
             var Token = await GenrateTokenAsync(User);
-            return new UserDTO(User.Email! , User.FirstName, Token);
+
+            return new UserDTO(User.Email! , User.FirstName, Token , Role);
 
         }
 
@@ -64,11 +79,13 @@ namespace LinkO.Services
                 PhoneNumber = registerDTO.PhoneNumber,
                 UserName = $"{registerDTO.FirstName}{registerDTO.LastName}{Guid.NewGuid().ToString("N")[..6]}"
             };
+
             var IdentityResult  =  await _userManager.CreateAsync(User, registerDTO.Password);
             if (IdentityResult.Succeeded)
             {
                 var Token = await GenrateTokenAsync(User);
-                return new UserDTO(User.Email!, User.FirstName, Token);
+                await _userManager.AddToRoleAsync(User, "User");
+                return new UserDTO(User.Email!, User.FirstName, Token , "User");
             }
             return IdentityResult.Errors.Select(E => Error.Validation(E.Code , E.Description)).ToList();
 
@@ -99,7 +116,17 @@ namespace LinkO.Services
             return new UserInfoDTO(User.FirstName, User.LastName, User.Email!, User.Gender.ToString(), User.DateOfBirth, User.PhoneNumber!, User.PublicId, User.ProfilePicture);
         }
 
+        public async Task<Result<IEnumerable<UserInfoDTO>>> GetAllUsersAsync()
+        {
+            var Users = await _userManager.GetUsersInRoleAsync("User");
+            if (Users == null || !Users.Any())
+                return Error.NotFound("No Users Found");
 
+            // Use AutoMapper to map ApplicationUser -> UserInfoDTO
+            var UsersDTOs = _mapper.Map<IEnumerable<UserInfoDTO>>(Users);
+
+            return Result<IEnumerable<UserInfoDTO>>.Ok(UsersDTOs);
+        }
 
         #region JWT Token
 
@@ -133,7 +160,7 @@ namespace LinkO.Services
             var Token = new JwtSecurityToken(
                 issuer      : _configuration["JWTOptions:Issuer"],
                 audience    : _configuration["JWTOptions:Audience"],
-                expires     : DateTime.Now.AddHours(2),
+                expires     : DateTime.Now.AddDays(7),
                 claims      : claims,
                 signingCredentials : Cred
                 );

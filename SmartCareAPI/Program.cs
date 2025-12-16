@@ -74,7 +74,12 @@ namespace SmartCareAPI
                 opt.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
             });
             builder.Services.AddHostedService<ReminderUpdateHostedService>();
-            builder.Services.AddScoped<IDataInitilizer, DataInitilizer>();
+
+
+            builder.Services.AddKeyedScoped<IDataInitilizer, DataInitilizer>("Default");
+            builder.Services.AddKeyedScoped<IDataInitilizer, IdentityDataIni>("Identity");
+
+
             builder.Services.AddScoped<IBasketRepository, BasketRepository>();
             builder.Services.AddScoped<IBasketService, BasketService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
@@ -101,11 +106,9 @@ namespace SmartCareAPI
             var app = builder.Build();
 
             #region DataSeed
-
-
             await app.MigrateDbAsync();
             await app.SeedDataAsync();
-
+            await app.SeedIdentityDataAsync();
             #endregion
 
 

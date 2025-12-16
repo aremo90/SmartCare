@@ -13,5 +13,8 @@ namespace LinkO.ServiceAbstraction
         Task<Result<IEnumerable<ProductDTO>>> GetAllProductAsync();
         Task<Result<ProductDTO>> GetProductByIdAsync(int id);
         Task<Result<IEnumerable<TypeDTO>>> GetAllTypesAsync();
+        Task<Result<ProductDTO>> UpdateProduct(int id , string email , UpdateProductDTO updateProductDTO);
+        Task<Result<ProductDTO>> AddProductAsync(string email, AddProductDTO addProductDTO);
+        Task<Result<bool>> DeleteProductAsync(int id , string email);
     }
 }

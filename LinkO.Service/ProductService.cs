@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using LinkO.Domin.Contract;
 using LinkO.Domin.Models;
+using LinkO.Domin.Models.IdentityModule;
 using LinkO.Service.Specification.ProductSpec;
 using LinkO.ServiceAbstraction;
 using LinkO.Shared.CommonResult;
 using LinkO.Shared.DTOS.AddressDTOS;
 using LinkO.Shared.DTOS.MedicineReminderDTOS;
 using LinkO.Shared.DTOS.ProductDTOS;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,12 +21,15 @@ namespace LinkO.Service
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ProductService(IUnitOfWork unitOfWork , IMapper mapper)
+        public ProductService(IUnitOfWork unitOfWork , IMapper mapper , UserManager<ApplicationUser> userManager)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
+            _userManager = userManager;
         }
+
 
         public async Task<Result<IEnumerable<ProductDTO>>> GetAllProductAsync()
         {
@@ -52,6 +57,54 @@ namespace LinkO.Service
             if (product is null)
                 return Error.NotFound();
             return mapper.Map<ProductDTO>(product);
+        }
+
+        public async Task<Result<ProductDTO>> UpdateProduct(int id, string email, UpdateProductDTO updateProductDTO)
+        {
+            // Check User Is Admin
+            var User = await _userManager.FindByEmailAsync(email);
+            if (User == null || !await _userManager.IsInRoleAsync(User, "Admin"))
+                return Error.Unauthorized("You are not authorized to perform this action.");
+            var spec = new ProductWithTypeSpecification(id);
+            var product = await unitOfWork.GetRepository<Product , int>().GetByIdAsync(spec);
+            if (product is null)
+                return Error.NotFound();
+            // Update Product Logic Here (Example: updating the name)
+            product.Name = updateProductDTO.Name ?? product.Name;
+            product.Description = updateProductDTO.Description ?? product.Description;
+            product.Price = updateProductDTO.Price ?? product.Price;
+            product.ImageUrl = updateProductDTO.ImageUrl ?? product.ImageUrl;
+            product.ImageAlt = updateProductDTO.ImageAlt ?? product.ImageAlt;
+            unitOfWork.GetRepository<Product , int>().Update(product);
+            await unitOfWork.SaveChangesAsync();
+            return mapper.Map<ProductDTO>(product);
+        }
+        public async Task<Result<ProductDTO>> AddProductAsync(string email, AddProductDTO addProductDTO)
+        {
+            var User = await _userManager.FindByEmailAsync(email);
+            if (User == null || !await _userManager.IsInRoleAsync(User, "Admin"))
+                return Error.Unauthorized("You are not authorized to perform this action.");
+
+            var product = mapper.Map<Product>(addProductDTO);
+            await unitOfWork.GetRepository<Product , int>().AddAsync(product);
+            await unitOfWork.SaveChangesAsync();
+            return mapper.Map<ProductDTO>(product);
+        }
+
+        public async Task<Result<bool>> DeleteProductAsync(int id, string email)
+        {
+            var User = await _userManager.FindByEmailAsync(email);
+            if (User == null || !await _userManager.IsInRoleAsync(User, "Admin"))
+                return Error.Unauthorized("You are not authorized to perform this action.");
+            var spec = new ProductWithTypeSpecification(id);
+            var product = await unitOfWork.GetRepository<Product , int>().GetByIdAsync(spec);
+            if (product is null)
+                return Error.NotFound();
+
+            unitOfWork.GetRepository<Product , int>().Delete(product);
+            await unitOfWork.SaveChangesAsync();
+            return Result<bool>.Ok(true);
+
         }
     }
 }
