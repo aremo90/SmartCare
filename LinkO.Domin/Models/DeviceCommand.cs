@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LinkO.Domin.Models
 {
-    public class DeviceCommand : BaseEntity
+    public class DeviceCommand : BaseEntity<int>
     {
         [Required]
         public int UserId { get; set; }

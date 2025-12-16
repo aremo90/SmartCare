@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LinkO.Domin.Models
 {
-    public class Device : BaseEntity
+    public class Device : BaseEntity<int>
     {
         
         public string DeviceIdentifier { get; set; } = null!; // e.g., MAC Address or Serial Number

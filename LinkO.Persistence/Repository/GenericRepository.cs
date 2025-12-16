@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace LinkO.Persistence.Repository
 {
-    public class GenericRepository<TEntity , Tkey> : IGenericRepository<TEntity , Tkey> where TEntity : BaseEntity, new()
+    public class GenericRepository<TEntity , Tkey> : IGenericRepository<TEntity , Tkey> where TEntity : BaseEntity<Tkey>
     {
         #region 
 
@@ -36,17 +36,16 @@ namespace LinkO.Persistence.Repository
         public void Delete(TEntity entity) =>
             _dbContext.Set<TEntity>().Remove(entity);
 
-        //public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity> specification)
-        //{
-        //    //var Query = SpecificationEvaluator.CreateQuery(_dbContext.Set<TEntity>(), specification);
-        //    //return await Query.ToListAsync();
+        public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity, Tkey> specification)
+        {
+            var Query = SpecificationEvaluator.CreateQuery(_dbContext.Set<TEntity>(), specification);
+            return await Query.ToListAsync();
+        }
 
-        //}
-
-        //public async Task<TEntity?> GetByIdAsync(ISpecification<TEntity> specification)
-        //{
-        //    //var Query = SpecificationEvaluator.CreateQuery(_dbContext.Set<TEntity>(), specification).FirstOrDefaultAsync();
-        //    //return await Query;
-        //}
+        public async Task<TEntity?> GetByIdAsync(ISpecification<TEntity, Tkey> specification)
+        {
+            var Query = SpecificationEvaluator.CreateQuery(_dbContext.Set<TEntity>(), specification).FirstOrDefaultAsync();
+            return await Query;
+        }
     }
 }

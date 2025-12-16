@@ -8,6 +8,7 @@ namespace LinkO.Shared.DTOS.AddressDTOS
 {
     public class AddressDTO
     {
+        public int Id { get; set; }
         public string UserAddress { get; set; } = default!;
     }
 }

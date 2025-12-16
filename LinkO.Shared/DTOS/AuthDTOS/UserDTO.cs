@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace LinkO.Shared.DTOS.AuthDTOS
 {
-    public record UserDTO(string Email , string FirstName , string Token);
+    public record UserDTO(string Email , string FirstName , string Token , string Role);
 }

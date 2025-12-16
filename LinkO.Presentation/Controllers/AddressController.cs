@@ -25,10 +25,10 @@ namespace LinkO.Presentation.Controllers
         #region get User address
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<AddressDTO>> GetUserAddress()
+        public async Task<ActionResult<IEnumerable<AddressDTO>>> GetUserAddress()
         {
             var Result = await _addressService.GetAddressByUserAsync(GetUserEmail());
-            return HandleResult<AddressDTO>(Result);
+            return HandleResult<IEnumerable<AddressDTO>>(Result);
         }
         #endregion
 

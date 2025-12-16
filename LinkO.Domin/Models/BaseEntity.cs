@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace LinkO.Domin.Models
 {
-    public abstract class BaseEntity
+    public abstract class BaseEntity<Tkey>
     {
-        public int Id { get; set; }
+        public Tkey Id { get; set; } = default!;
         //public DateTime CreatedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now ;
         public DateTime? UpdatedAt { get; set; }
