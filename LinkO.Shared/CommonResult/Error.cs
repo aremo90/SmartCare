@@ -40,11 +40,14 @@ namespace LinkO.Shared.CommonResult
         {
             return new Error(Code , Description , ErrorType.Forbidden);
         }
+        public static Error Conflict(string Code = "Conflict", string Description = "Conflict occured !")
+        {
+            return new Error(Code , Description , ErrorType.Conflict);
+        }
         public static Error InvalidCredentials(string Code = "InvalidCredentials Errors", string Description = "InvalidCredentials Errors occured !")
         {
             return new Error(Code , Description , ErrorType.InvalidCredentials);
         }
-
 
     }
 }

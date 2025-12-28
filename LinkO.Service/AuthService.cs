@@ -42,7 +42,7 @@ namespace LinkO.Services
             var User = await _userManager.FindByEmailAsync(email);
             if (User == null)
                 return Error.NotFound("User Info Not Found");
-            return new UserInfoDTO(User.FirstName , User.LastName , User.Email! , User.Gender.ToString() , User.DateOfBirth , User.PhoneNumber!);
+            return new UserInfoDTO(User.FirstName , User.LastName , User.Email! , User.Gender.ToString() , User.DateOfBirth , User.PhoneNumber! ,User.PublicId , User.ProfilePicture);
         }
 
         public async Task<Result<UserDTO>> LoginAsync(LoginDTO loginDTO)
@@ -62,13 +62,16 @@ namespace LinkO.Services
             var Role = Roles.FirstOrDefault() ?? "User";
 
             var Token = await GenrateTokenAsync(User);
-
-            return new UserDTO(User.Email! , User.FirstName, Token , Role);
+            return new UserDTO(User.Email! , User.FirstName, Token, Role);
 
         }
 
         public async Task<Result<UserDTO>> RegisterAsync(RegisterDTO registerDTO)
         {
+            var UserExist = await _userManager.FindByEmailAsync(registerDTO.Email);
+            if (UserExist?.Email is not null)
+                return Error.Conflict("Email is already registered");
+
             var User = new ApplicationUser
             {
                 FirstName = registerDTO.FirstName,
@@ -111,6 +114,8 @@ namespace LinkO.Services
                 User.PublicId = updateUserInfo.PublicId;
             if (updateUserInfo.ProfilePicture is not null)
                 User.ProfilePicture = updateUserInfo.ProfilePicture;
+            if (updateUserInfo.userFcmToken is not null)
+                User.DeviceFcmToken = updateUserInfo.userFcmToken;
 
             await _userManager.UpdateAsync(User);
             return new UserInfoDTO(User.FirstName, User.LastName, User.Email!, User.Gender.ToString(), User.DateOfBirth, User.PhoneNumber!, User.PublicId, User.ProfilePicture);
@@ -127,6 +132,7 @@ namespace LinkO.Services
 
             return Result<IEnumerable<UserInfoDTO>>.Ok(UsersDTOs);
         }
+
 
         #region JWT Token
 

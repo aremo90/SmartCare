@@ -12,5 +12,6 @@ namespace LinkO.ServiceAbstraction
     {
         Task<Result<DeviceDTO>> GetDeviceInfoByUserId(string Email);
         Task<Result<DeviceDTO>> RegisterDeviceForUser(string Email, CreateDeviceDTO createDeviceDTO);
+        Task<Result<DeviceDTO>> AddDeviceAsync(string DeviceIdentifier);
     }
 }

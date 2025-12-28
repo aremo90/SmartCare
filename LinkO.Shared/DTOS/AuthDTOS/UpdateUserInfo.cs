@@ -14,5 +14,6 @@ namespace LinkO.Shared.DTOS.AuthDTOS
         public DateOnly? DateOfBirth { get; set; }
         public string? PublicId { get; set; }
         public string? ProfilePicture {  get; set; }
+        public string? userFcmToken { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using LinkO.Persistence.IdentityData.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LinkO.Persistence.IdentityData.Migrations
 {
     [DbContext(typeof(LinkOIdentityDbContext))]
-    partial class LinkOIdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251228180813_FcmFireBase")]
+    partial class FcmFireBase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,19 +85,20 @@ namespace LinkO.Persistence.IdentityData.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DeviceName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("Devices", (string)null);
                 });
@@ -595,7 +599,9 @@ namespace LinkO.Persistence.IdentityData.Migrations
                 {
                     b.HasOne("LinkO.Domin.Models.IdentityModule.ApplicationUser", "User")
                         .WithOne("Device")
-                        .HasForeignKey("LinkO.Domin.Models.Device", "UserId");
+                        .HasForeignKey("LinkO.Domin.Models.Device", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

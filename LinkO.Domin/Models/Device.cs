@@ -7,12 +7,11 @@ namespace LinkO.Domin.Models
 {
     public class Device : BaseEntity<int>
     {
-        
-        public string DeviceIdentifier { get; set; } = null!; // e.g., MAC Address or Serial Number
-        public string DeviceName { get; set; } = null!;
+        public string DeviceIdentifier { get; set; } = null!;
+        public string? DeviceName { get; set; }
 
         // navigation property
-        public string UserId { get; set; } = default!;
-        public ApplicationUser User { get; set; } = null!;
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
     }
 }
