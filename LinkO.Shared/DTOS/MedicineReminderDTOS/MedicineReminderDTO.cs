@@ -17,6 +17,7 @@ namespace LinkO.Shared.DTOS.MedicineReminderDTOS
         public string? CustomDays { get; set; }
         public DateOnly StartDate { get; set; }
         public TimeOnly ScheduleTime { get; set; }
+        public DateTime CreatedAt { get; set; }
 
     }
 }

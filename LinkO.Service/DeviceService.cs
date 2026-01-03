@@ -100,8 +100,5 @@ namespace LinkO.Services
 
             return _mapper.Map<DeviceDTO>(existingDevice);
         }
-
-
-
     }
 }
