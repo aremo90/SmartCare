@@ -25,6 +25,7 @@ namespace LinkO.Presentation.Controllers
         {
             var result = await productService.GetAllProductAsync();
             return HandleResult<IEnumerable<ProductDTO>>(result);
+            //return Ok(result);
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDTO>> GetProductByIdAsync(int id)

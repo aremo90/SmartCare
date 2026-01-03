@@ -1,4 +1,6 @@
-﻿using LinkO.Domin.Contract;
+﻿using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using LinkO.Domin.Contract;
 using LinkO.Domin.Models.IdentityModule;
 using LinkO.Persistence.DataSeed;
 using LinkO.Persistence.IdentityData.DbContext;
@@ -101,6 +103,12 @@ namespace SmartCareAPI
             {
                 opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
+
+            FirebaseApp.Create(new AppOptions()
+            {
+                Credential = GoogleCredential.FromFile(Path.Combine(Directory.GetCurrentDirectory(), "Keys", "FireBase.json"))
+            });
+            builder.Services.AddScoped<IFcmService, FcmService>();
             #endregion
 
             var app = builder.Build();

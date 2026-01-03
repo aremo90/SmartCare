@@ -7,6 +7,7 @@ using LinkO.ServiceAbstraction;
 using LinkO.Shared.CommonResult;
 using LinkO.Shared.DTOS.GpsDTOS;
 using Microsoft.AspNetCore.Identity;
+using Stripe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +40,16 @@ namespace LinkO.Services
             var gpsLocations = await _unitOfWork.GetRepository<GpsLocation, int>().GetAllAsync();
             var gpsLocation = gpsLocations.FirstOrDefault(g => g.UserId == User.Id);
             if (gpsLocation == null)
-                return Error.NotFound();
+            {
+                gpsLocation = new GpsLocation
+                {
+                    UserId = User.Id,
+                    Latitude = 29.965157,
+                    Longitude = 31.015914,
+                    CreatedAt = DateTime.Now
+                };
+                await _unitOfWork.GetRepository<GpsLocation, int>().AddAsync(gpsLocation);
+            }
             return _mapper.Map<GpsDTO>(gpsLocation);
         }
 

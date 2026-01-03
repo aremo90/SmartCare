@@ -28,6 +28,19 @@ namespace LinkO.Services
             _userManager = userManager;
         }
 
+        public async Task<Result<DeviceDTO>> AddDeviceAsync(string DeviceIdentifier)
+        {
+            if (string.IsNullOrWhiteSpace(DeviceIdentifier))
+                return Error.InvalidCredentials("Device identifier cannot be empty.");
+            var deviceRepository = _unitOfWork.GetRepository<Device, int>();
+            var allDevices = await deviceRepository.GetAllAsync();
+            if (allDevices.Any(d => d.DeviceIdentifier == DeviceIdentifier))
+                return Error.Conflict("Device with the same identifier already exists.");
+            var newDevice = new Device { DeviceIdentifier = DeviceIdentifier };
+            await deviceRepository.AddAsync(newDevice);
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<DeviceDTO>(newDevice);
+        }
 
         public async Task<Result<DeviceDTO>> GetDeviceInfoByUserId(string Email)
         {
@@ -46,7 +59,7 @@ namespace LinkO.Services
 
         public async Task<Result<DeviceDTO>> RegisterDeviceForUser(string Email, CreateDeviceDTO createDeviceDTO)
         {
-            var User = _userManager.FindByEmailAsync(Email).Result;
+            var User = await _userManager.FindByEmailAsync(Email);
             if (User is null)
                 return Error.NotFound("User Not found");
 
@@ -57,24 +70,35 @@ namespace LinkO.Services
                 return Error.InvalidCredentials("Device identifier cannot be empty.");
 
             var deviceRepository = _unitOfWork.GetRepository<Device, int>();
+
+            // Ideally, filter this in the DB, not in memory (see note below)
             var allDevices = await deviceRepository.GetAllAsync();
 
             if (allDevices.Any(d => d.UserId == User.Id))
                 return Error.InvalidCredentials("User Already Have A Device Paired");
 
-            if (allDevices.Any(d => d.DeviceIdentifier == createDeviceDTO.DeviceIdentifier))
+            // 1. FIND the specific existing device object
+            var existingDevice = allDevices.FirstOrDefault(d => d.DeviceIdentifier == createDeviceDTO.DeviceIdentifier);
+
+            // Check if it exists
+            if (existingDevice == null)
+                return Error.NotFound("Device Not found in our records");
+
+            // Check if it's already paired
+            if (existingDevice.UserId is not null)
                 return Error.InvalidCredentials("This Device is Already Paired");
 
-            var newDevice = _mapper.Map<Device>(createDeviceDTO);
-            newDevice.UserId = User.Id;
+            // 2. UPDATE the EXISTING object instead of creating a new one
+            existingDevice.UserId = User.Id;
 
-            await deviceRepository.AddAsync(newDevice);
+            // If createDeviceDTO has other updates (like name), map them onto the existing entity:
+             _mapper.Map(createDeviceDTO, existingDevice);
+
+            // 3. Save the existing entity
+            deviceRepository.Update(existingDevice);
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<DeviceDTO>(newDevice);
+            return _mapper.Map<DeviceDTO>(existingDevice);
         }
-
-
-
     }
 }

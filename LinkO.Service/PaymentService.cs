@@ -84,5 +84,6 @@ namespace LinkO.Service
             return _mapper.Map<CustomerBasket, BasketDTO>(Basket);
 
         }
+
     }
 }

@@ -33,6 +33,12 @@ namespace LinkO.Presentation.Controllers
             var Result = await _deviceService.RegisterDeviceForUser(GetUserEmail(), createDeviceDTO);
             return HandleResult<DeviceDTO>(Result);
         }
-
+        //[Authorize]
+        [HttpPost("insertDevice/{DeviceIdentifier}")]
+        public async Task<ActionResult<DeviceDTO>> AddDevice(string DeviceIdentifier)
+        {
+            var Result = await _deviceService.AddDeviceAsync(DeviceIdentifier);
+            return HandleResult<DeviceDTO>(Result);
+        }
     }
 }
