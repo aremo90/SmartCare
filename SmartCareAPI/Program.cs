@@ -92,7 +92,7 @@ namespace SmartCareAPI
                 options.AddPolicy("AllowFrontend", policy =>
                 {
                     policy
-                        .SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+                        .SetIsOriginAllowed(origin => true)
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();

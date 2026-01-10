@@ -3,6 +3,7 @@ using LinkO.Domin.Contract;
 using LinkO.Domin.Models;
 using LinkO.Domin.Models.IdentityModule;
 using LinkO.ServiceAbstraction;
+using Linko.Service.Specification;
 using LinkO.Shared.CommonResult;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -18,7 +19,7 @@ namespace LinkO.Service
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public FcmService(IUnitOfWork unitOfWork , UserManager<ApplicationUser> userManager)
+        public FcmService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
@@ -89,8 +90,8 @@ namespace LinkO.Service
         private async Task<Device?> getDevice(string DeviceIdentifier)
         {
             var deviceRepository = _unitOfWork.GetRepository<Device, int>();
-            var allDevices = await deviceRepository.GetAllAsync();
-            var device = allDevices.FirstOrDefault(d => d.DeviceIdentifier == DeviceIdentifier);
+            var spec = new BaseSpecification<Device, int>(d => d.DeviceIdentifier == DeviceIdentifier);
+            var device = await deviceRepository.GetByIdAsync(spec);
             return device;
         }
     }

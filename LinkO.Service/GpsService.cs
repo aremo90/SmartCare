@@ -4,6 +4,7 @@ using LinkO.Domin.Models;
 using LinkO.Domin.Models.IdentityModule;
 using LinkO.Service.Exceptions;
 using LinkO.ServiceAbstraction;
+using Linko.Service.Specification;
 using LinkO.Shared.CommonResult;
 using LinkO.Shared.DTOS.GpsDTOS;
 using Microsoft.AspNetCore.Identity;
@@ -23,7 +24,7 @@ namespace LinkO.Services
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public GpsService(IUnitOfWork unitOfWork , IMapper mapper , UserManager<ApplicationUser> userManager)
+        public GpsService(IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -37,8 +38,9 @@ namespace LinkO.Services
             if (User is null)
                 return Error.NotFound();
 
-            var gpsLocations = await _unitOfWork.GetRepository<GpsLocation, int>().GetAllAsync();
-            var gpsLocation = gpsLocations.FirstOrDefault(g => g.UserId == User.Id);
+            var gpsRepo = _unitOfWork.GetRepository<GpsLocation, int>();
+            var gpsSpec = new BaseSpecification<GpsLocation, int>(g => g.UserId == User.Id);
+            var gpsLocation = await gpsRepo.GetByIdAsync(gpsSpec);
             if (gpsLocation == null)
             {
                 gpsLocation = new GpsLocation
@@ -68,16 +70,18 @@ namespace LinkO.Services
                 throw new ArgumentException("Invalid GPS coordinates.", nameof(gpsUpdateDTO));
             }
 
-            var devices = await _unitOfWork.GetRepository<Device, int>().GetAllAsync();
-            var device = devices.FirstOrDefault(d => d.DeviceIdentifier == deviceIdentifier);
+            var deviceRepo = _unitOfWork.GetRepository<Device, int>();
+            var deviceSpec = new BaseSpecification<Device, int>(d => d.DeviceIdentifier == deviceIdentifier);
+            var device = await deviceRepo.GetByIdAsync(deviceSpec);
 
             if (device == null)
             {
                 throw new KeyNotFoundException($"Device not found for the specified device identifier: {deviceIdentifier}");
             }
 
-            var gpsLocations = await _unitOfWork.GetRepository<GpsLocation, int>().GetAllAsync();
-            var gpsLocation = gpsLocations.FirstOrDefault(g => g.UserId == device.UserId);
+            var gpsRepo = _unitOfWork.GetRepository<GpsLocation, int>();
+            var gpsSpec = new BaseSpecification<GpsLocation, int>(g => g.UserId == device.UserId);
+            var gpsLocation = await gpsRepo.GetByIdAsync(gpsSpec);
 
             if (gpsLocation == null)
             {

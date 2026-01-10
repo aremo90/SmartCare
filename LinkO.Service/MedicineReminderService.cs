@@ -5,6 +5,7 @@ using LinkO.Domin.Models.Enum;
 using LinkO.Domin.Models.IdentityModule;
 using LinkO.Service.Exceptions;
 using LinkO.ServiceAbstraction;
+using Linko.Service.Specification;
 using LinkO.Shared.CommonResult;
 using LinkO.Shared.DTOS.AddressDTOS;
 using LinkO.Shared.DTOS.MedicineReminderDTOS;
@@ -25,7 +26,7 @@ namespace LinkO.Services
         private readonly ILogger _logger;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public MedicineReminderService(IUnitOfWork unitOfWork , IMapper mapper , ILogger<MedicineReminder> logger , UserManager<ApplicationUser> userManager)
+        public MedicineReminderService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<MedicineReminder> logger, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -33,7 +34,7 @@ namespace LinkO.Services
             _userManager = userManager;
         }
 
-        public async Task<Result<MedicineReminderDTO>> CreateReminderAsync(string email,CreateMedicineReminderDTO model)
+        public async Task<Result<MedicineReminderDTO>> CreateReminderAsync(string email, CreateMedicineReminderDTO model)
         {
             var User = await _userManager.FindByEmailAsync(email);
 
@@ -71,8 +72,8 @@ namespace LinkO.Services
                 return Result<IEnumerable<MedicineReminderDTO>>.Fail(Error.NotFound("User Not found"));
 
             var MedicineRepository = _unitOfWork.GetRepository<MedicineReminder, int>();
-            var AllMedicine = await MedicineRepository.GetAllAsync();
-            var UserMedicines = AllMedicine.Where(a => a.UserId == User.Id);
+            var MedicineSpec = new BaseSpecification<MedicineReminder, int>(m => m.UserId == User.Id);
+            var UserMedicines = await MedicineRepository.GetAllAsync(MedicineSpec);
 
             var userMedicinesDto = _mapper.Map<IEnumerable<MedicineReminderDTO>>(UserMedicines);
             return Result<IEnumerable<MedicineReminderDTO>>.Ok(userMedicinesDto);
@@ -82,8 +83,8 @@ namespace LinkO.Services
         public async Task<Result<IEnumerable<DeviceReminderDTO>>> GetRemindersByDeviceIdentifierAsync(string deviceIdentifier)
         {
             var deviceRepository = _unitOfWork.GetRepository<Device, int>();
-            var allDevices = await deviceRepository.GetAllAsync();
-            var device = allDevices.FirstOrDefault(d => d.DeviceIdentifier == deviceIdentifier);
+            var spec = new BaseSpecification<Device, int>(d => d.DeviceIdentifier == deviceIdentifier);
+            var device = await deviceRepository.GetByIdAsync(spec);
 
             if (device is null)
                 return Result<IEnumerable<DeviceReminderDTO>>.Fail(Error.NotFound("Device not found."));
@@ -94,17 +95,17 @@ namespace LinkO.Services
 
 
             var MedicineRepository = _unitOfWork.GetRepository<MedicineReminder, int>();
-            var AllMedicine = await MedicineRepository.GetAllAsync();
-            var UserMedicines = AllMedicine.Where(a => a.UserId == UserId);
+            var MedicineSpec = new BaseSpecification<MedicineReminder, int>(m => m.UserId == UserId);
+            var UserMedicines = await MedicineRepository.GetAllAsync(MedicineSpec);
             if (!UserMedicines.Any())
-                return Result<IEnumerable<DeviceReminderDTO>>.Fail(Error.NotFound("You Dont Have Any Reminders Right Now"));
+                return Error.NotFound("No Medicines Found For The User Paired With This Device");
 
             var deviceRemindersDto = _mapper.Map<IEnumerable<DeviceReminderDTO>>(UserMedicines);
             return Result<IEnumerable<DeviceReminderDTO>>.Ok(deviceRemindersDto);
         }
         public async Task UpdateNextReminderDateAsync(int reminderId)
         {
-            var reminderRepository = _unitOfWork.GetRepository<MedicineReminder , int>();
+            var reminderRepository = _unitOfWork.GetRepository<MedicineReminder, int>();
             var reminder = await reminderRepository.GetByIdAsync(reminderId);
 
             if (reminder == null)
@@ -119,7 +120,7 @@ namespace LinkO.Services
 
         public async Task ProcessPastDueRemindersAsync()
         {
-            var reminderRepository = _unitOfWork.GetRepository<MedicineReminder,int>();
+            var reminderRepository = _unitOfWork.GetRepository<MedicineReminder, int>();
             var allReminders = await reminderRepository.GetAllAsync();
             var now = DateTime.Now;
 

@@ -74,16 +74,13 @@ namespace SmartCareBLL.Mapping
             #region Order
 
             CreateMap<Order, OrderToReturnDTO>()
-                .ForMember(D => D.DeliveryMethod, O => O.MapFrom(S => S.DeliveryMethod.ShortName)).ReverseMap();
+                .ForMember(d => d.Address, opt => opt.MapFrom(s => s.Address))
+                .ForMember(d => d.DeliveryMethod, o => o.MapFrom(s => s.DeliveryMethod != null ? s.DeliveryMethod.ShortName : null));
 
             CreateMap<OrderItem, OrderItemDTO>()
                 .ForMember(D => D.ProductName, O => O.MapFrom(S => S.Product.ProductName))
                 .ForMember(D => D.PictureUrl, O => O.MapFrom(S => S.Product.PictureUrl))
                 .ReverseMap();
-
-
-            CreateMap<Order, OrderToReturnDTO>()
-                .ForMember(d => d.Address, opt => opt.MapFrom(s => s.Address));
 
             CreateMap<DeliveryMethod, DeliveryMethodDTO>();
             #endregion
