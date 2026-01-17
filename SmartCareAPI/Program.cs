@@ -76,6 +76,7 @@ namespace SmartCareAPI
                 opt.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
             });
             builder.Services.AddHostedService<ReminderUpdateHostedService>();
+            builder.Services.AddHostedService<MedicineNotificationHostedService>();
 
 
             builder.Services.AddKeyedScoped<IDataInitilizer, DataInitilizer>("Default");
@@ -92,7 +93,7 @@ namespace SmartCareAPI
                 options.AddPolicy("AllowFrontend", policy =>
                 {
                     policy
-                        .SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+                        .SetIsOriginAllowed(origin => true)
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
@@ -140,4 +141,3 @@ namespace SmartCareAPI
     }
 }
 
-    

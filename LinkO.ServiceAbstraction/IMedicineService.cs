@@ -13,5 +13,6 @@ namespace LinkO.ServiceAbstraction
         Task<bool> DeleteReminderAsync(int id);
         Task UpdateNextReminderDateAsync(int reminderId);
         Task ProcessPastDueRemindersAsync();
+        Task<Result<string>> SendNotificationAsync();
     }
 }
