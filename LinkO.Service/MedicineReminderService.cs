@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
+using FirebaseAdmin.Messaging;
+using Linko.Service.Specification;
 using LinkO.Domin.Contract;
 using LinkO.Domin.Models;
 using LinkO.Domin.Models.Enum;
 using LinkO.Domin.Models.IdentityModule;
 using LinkO.Service.Exceptions;
 using LinkO.ServiceAbstraction;
-using Linko.Service.Specification;
 using LinkO.Shared.CommonResult;
 using LinkO.Shared.DTOS.AddressDTOS;
 using LinkO.Shared.DTOS.MedicineReminderDTOS;
@@ -193,6 +194,79 @@ namespace LinkO.Services
                     reminder.StartDate = reminder.StartDate.AddDays(daysToAdd);
                     break;
             }
+        }
+
+
+        public async Task<Result<string>> SendNotificationAsync()
+        {
+            var now = DateTime.Now;
+            var today = DateOnly.FromDateTime(now);
+            var reminderRepository = _unitOfWork.GetRepository<MedicineReminder, int>();
+
+            // Use specification to load only reminders due right now
+            var spec = new BaseSpecification<MedicineReminder, int>(r =>
+                r.ScheduleTime.Hour == now.Hour &&
+                r.ScheduleTime.Minute == now.Minute &&
+                r.StartDate <= today);
+
+            var dueReminders = await reminderRepository.GetAllAsync(spec);
+
+            if (!dueReminders.Any())
+                return Result<string>.Fail(Error.NotFound("No medicines due at this time."));
+
+            var userIds = dueReminders
+                .Select(r => r.UserId)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList();
+
+            int sent = 0;
+            int failed = 0;
+
+            foreach (var uid in userIds)
+            {
+                var user = await _userManager.FindByIdAsync(uid);
+                if (user == null) { failed++; continue; }
+
+                var token = user.DeviceFcmToken;
+                if (string.IsNullOrWhiteSpace(token)) { failed++; continue; }
+
+                var message = new Message
+                {
+                    Token = token,
+                    Notification = new Notification
+                    {
+                        Title = "Medication Time",
+                        Body = "Beeb Beeb Medication time has arrived"
+                    },
+                    Android = new AndroidConfig
+                    {
+                        Priority = Priority.High,
+                        Notification = new AndroidNotification
+                        {
+                            Sound = "default",
+                            ChannelId = "emergency_channel"
+                        }
+                    }
+                };
+
+                try
+                {
+                    await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                    sent++;
+                }
+                catch (FirebaseMessagingException ex)
+                {
+                    if (ex.MessagingErrorCode == MessagingErrorCode.Unregistered || ex.MessagingErrorCode == MessagingErrorCode.InvalidArgument)
+                    {
+                        user.DeviceFcmToken = null;
+                        await _userManager.UpdateAsync(user);
+                    }
+                    failed++;
+                }
+            }
+
+            return Result<string>.Ok($"Notifications sent: {sent}, failed: {failed}");
         }
 
 

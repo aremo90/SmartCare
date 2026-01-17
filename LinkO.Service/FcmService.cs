@@ -6,11 +6,7 @@ using LinkO.ServiceAbstraction;
 using Linko.Service.Specification;
 using LinkO.Shared.CommonResult;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LinkO.Service
 {
@@ -86,7 +82,6 @@ namespace LinkO.Service
                 return Error.Failure("Notification Failed", ex.Message);
             }
         }
-
         private async Task<Device?> getDevice(string DeviceIdentifier)
         {
             var deviceRepository = _unitOfWork.GetRepository<Device, int>();

@@ -76,6 +76,7 @@ namespace SmartCareAPI
                 opt.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
             });
             builder.Services.AddHostedService<ReminderUpdateHostedService>();
+            builder.Services.AddHostedService<MedicineNotificationHostedService>();
 
 
             builder.Services.AddKeyedScoped<IDataInitilizer, DataInitilizer>("Default");
@@ -140,4 +141,3 @@ namespace SmartCareAPI
     }
 }
 
-    
